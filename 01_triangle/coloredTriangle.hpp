@@ -58,16 +58,16 @@ inline Geometry createGeometry() {
 		{{ 0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}  // Vertex 3: position and color (blue)
 	};
 
-	glBindVertexArray(geometry.vao.get());
+	GL_CHECK(glBindVertexArray(geometry.vao.get()));
 
-	glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo.get());
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo.get()));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW));
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
+	GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0));
+	GL_CHECK(glEnableVertexAttribArray(0));
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	GL_CHECK(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float))));
+	GL_CHECK(glEnableVertexAttribArray(1));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

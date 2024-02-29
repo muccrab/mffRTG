@@ -53,7 +53,7 @@ public:
 	}
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-		glViewport(0, 0, width, height);
+		GL_CHECK(glViewport(0, 0, width, height));
 	}
 
 	void processInput(GLFWwindow* window) {

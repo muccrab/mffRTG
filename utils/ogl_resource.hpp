@@ -4,6 +4,8 @@
 #include <functional>
 #include <utility>
 
+#include "error_handling.hpp"
+
 class OpenGLResource {
 public:
 	OpenGLResource(
@@ -50,7 +52,7 @@ inline OpenGLResource createVertexArray() {
 	return OpenGLResource(
 		[]{
 			GLuint id = 0;
-			glGenVertexArrays(1, &id);
+			GL_CHECK(glGenVertexArrays(1, &id));
 			return id;
 		},
 		[](GLuint id){
@@ -62,7 +64,7 @@ inline OpenGLResource createBuffer() {
 	return OpenGLResource(
 		[]{
 			GLuint id = 0;
-			glGenBuffers(1, &id);
+			GL_CHECK(glGenBuffers(1, &id));
 			return id;
 		},
 		[](GLuint id){

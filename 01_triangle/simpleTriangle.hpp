@@ -44,13 +44,13 @@ inline Geometry createGeometry() {
 		 0.0f,  0.5f, 0.0f  // top
 	};
 
-	glBindVertexArray(geometry.vao.get());
+	GL_CHECK(glBindVertexArray(geometry.vao.get()));
 
-	glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo.get());
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo.get()));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW));
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0));
+	GL_CHECK(glEnableVertexAttribArray(0));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

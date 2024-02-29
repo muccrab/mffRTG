@@ -1,5 +1,32 @@
 # 01 TRIANGLE
 
+## Overview
+
+Rendering a single triangle is *hello world* of OpenGL rendering. 
+The implementation shows the following steps:
+
+ * Construction of application window using [GLFW](https://www.glfw.org/) library
+ * Subsequent initialization of [GLAD](https://github.com/Dav1dde/glad) to load OGL functions
+ * Define geometry and load it to GPU
+ * Compile and link simple vertex and fragment shaders
+ * Start rendering loop
+
+### Vanilla demo
+
+The `vanilla.cpp` source file is self contained (minus GLFW and glad) demo, where all the listed 
+steps are in single file, mostly in *spaghetti* form. There is also limited error handling.
+
+### Experiment
+
+The `main.cpp` and the rest of the header files in this directory is our experimental code. 
+The resource management is implemented by using *RAII* wrappers, code also employs the error checking tools from the utils dir.
+
+You can compile several variants of the demo application by changing the include at the top 
+of the file. Options are:
+ * simpleTriangle.hpp
+ * coloredTriangle.hpp
+ * fractal.hpp
+
 ## Geometry definition
 
 In OpenGL, geometry can be defined and rendered using various methods, each with its advantages and potential use cases. Here's an overview of the main ways to define and render a simple triangle in OpenGL, illustrating these methods with examples.
