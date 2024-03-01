@@ -11,8 +11,6 @@ public:
 	OpenGLResource(
 		std::function<GLuint()> aCreateFunc,
 		std::function<void(GLuint)> aDeleteFunc)
-		// void (*aCreateFunc)(GLsizei, GLuint*),
-		// void (*aDeleteFunc)(GLsizei, const GLuint*))
 		: mCreateFunc(aCreateFunc)
 		, mDeleteFunc(aDeleteFunc)
 	{
@@ -28,11 +26,17 @@ public:
 	OpenGLResource& operator=(const OpenGLResource&) = delete;
 
 	// Enable move operations
-	OpenGLResource(OpenGLResource&& other) noexcept : mId(std::exchange(other.mId, 0)) {}
+	OpenGLResource(OpenGLResource&& other) noexcept
+		: mId(std::exchange(other.mId, 0))
+		, mCreateFunc(other.mCreateFunc)
+		, mDeleteFunc(other.mDeleteFunc)
+	{}
 	OpenGLResource& operator=(OpenGLResource&& other) noexcept {
 		if (this != &other) {
 			mDeleteFunc(mId);
 			mId = std::exchange(other.mId, 0);
+			mCreateFunc = other.mCreateFunc;
+			mDeleteFunc = other.mDeleteFunc;
 		}
 		return *this;
 	}
@@ -43,9 +47,6 @@ private:
 	GLuint mId = 0; // OpenGL resource ID
 	std::function<GLuint(void)> mCreateFunc;
 	std::function<void(GLuint)> mDeleteFunc;
-	// 		//
-	// void (*mCreateFunc)(GLsizei, GLuint*);
-	// void (*mDeleteFunc)(GLsizei, const GLuint*);
 };
 
 inline OpenGLResource createVertexArray() {
