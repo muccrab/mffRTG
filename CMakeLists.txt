@@ -59,6 +59,7 @@ else()
 	find_package(glfw3 3.3 REQUIRED)
 endif()
 
+find_package(glm REQUIRED)
 
 # Add subdirectories here
 add_subdirectory(01_triangle)
