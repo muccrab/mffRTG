@@ -2,11 +2,12 @@
 
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include "scene_object.hpp"
 
 class Camera : public SceneObject {
 public:
-	Camera(float fov, float aspectRatio, float nearPlane, float farPlane)
+	Camera(float aspectRatio, float fov=45.0f, float nearPlane=0.01f, float farPlane=1000.0f)
 		: SceneObject(), fov(fov), aspectRatio(aspectRatio), nearPlane(nearPlane), farPlane(farPlane) {}
 
 	glm::mat4 getViewMatrix() const {

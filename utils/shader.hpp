@@ -77,17 +77,21 @@ inline auto compileShader(GLenum aShaderType, const std::string& aSource) {
 	return shader;
 }
 
-auto createShaderProgram(const std::string& vertexShader, const std::string& fragmentShader) {
+inline auto createShaderProgram(const OpenGLResource& vertexShader, OpenGLResource& fragmentShader) {
 	auto program = createShaderProgram();
-	auto vs = compileShader(GL_VERTEX_SHADER, vertexShader);
-	auto fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	GL_CHECK(glAttachShader(program.get(), vs.get()));
-	GL_CHECK(glAttachShader(program.get(), fs.get()));
+	GL_CHECK(glAttachShader(program.get(), vertexShader.get()));
+	GL_CHECK(glAttachShader(program.get(), fragmentShader.get()));
 	GL_CHECK(glLinkProgram(program.get()));
 	GL_CHECK(glValidateProgram(program.get()));
 	// TODO - check validation result
 	return program;
+}
+
+inline auto createShaderProgram(const std::string& vertexShader, const std::string& fragmentShader) {
+	auto vs = compileShader(GL_VERTEX_SHADER, vertexShader);
+	auto fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	return createShaderProgram(vs, fs);
 }
 
 

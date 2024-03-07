@@ -62,6 +62,12 @@ public:
 		}
 	}
 
+	float aspectRatio() const {
+		int width, height;
+		glfwGetWindowSize(mWindow, &width, &height);
+		return float(width) / height;
+	}
+
 protected:
 	GLFWwindow* mWindow;
 };

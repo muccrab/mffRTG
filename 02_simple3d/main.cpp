@@ -12,6 +12,10 @@
 #include "shader.hpp"
 
 #include "simple_scene.hpp"
+#include "renderer.hpp"
+
+#include "ogl_geometry_factory.hpp"
+#include "material_factory.hpp"
 
 struct AppConfig {
 
@@ -31,17 +35,24 @@ int main() {
 
 	try {
 		auto window = Window();
-		window.setInputHandler([&config](Window &aWindow){
-			handleUserInput(window, config);
-		});
+		// window.setInputHandler([&config](Window &aWindow){
+		// 	handleUserInput(window, config);
+		// });
 
-		std::array<std::unique_ptr<BaseScene>> scenes {
-			createCubeScene(),
-			createSphereScene()
+		OGLMaterialFactory materialFactory;
+		materialFactory.loadShadersFromDir("./shaders/");
+		materialFactory.loadTexturesFromDir("./textures/");
+
+		OGLGeometryFactory geometryFactory;
+
+
+		std::array<SimpleScene, 2> scenes {
+			createCubeScene(materialFactory, geometryFactory),
+			createSphereScene(materialFactory, geometryFactory)
 		};
 		int currentSceneIdx = 0;
 
-		Camera camera;
+		Camera camera(window.aspectRatio());
 		Renderer renderer;
 
 		for (auto &scene : scenes) {

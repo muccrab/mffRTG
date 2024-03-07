@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(GLTutorials)
 
 # Specify the C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find OpenGL package
@@ -63,4 +63,5 @@ find_package(glm REQUIRED)
 
 # Add subdirectories here
 add_subdirectory(01_triangle)
+add_subdirectory(02_simple3d)
 

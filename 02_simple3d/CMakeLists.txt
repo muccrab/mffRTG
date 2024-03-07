@@ -12,7 +12,7 @@ add_executable(02_simple3d
 )
 target_sources(02_simple3d PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../glad/src/glad.c)
 target_link_libraries(02_simple3d glm::glm glfw OpenGL::GL)
-target_include_directories(01_triangle PRIVATE
+target_include_directories(02_simple3d PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../glad/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../utils
 	${CMAKE_CURRENT_SOURCE_DIR}
