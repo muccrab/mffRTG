@@ -21,15 +21,22 @@ struct TextureName {
 using MaterialParam = std::variant<float, glm::vec2, glm::vec3, glm::vec4, TextureName>;
 using MaterialParameterValues = std::map<std::string, MaterialParam>;
 
+enum class RenderStyle {
+	Solid,
+	Lines
+};
+
 class MaterialParameters {
 public:
 	MaterialParameters() {}
-	MaterialParameters(const std::string &aMaterialName, const MaterialParameterValues &aParameterValues)
+	MaterialParameters(const std::string &aMaterialName, RenderStyle aRenderStyle, const MaterialParameterValues &aParameterValues)
 		: mMaterialName(aMaterialName)
+		, mRenderStyle(aRenderStyle)
 		, mParameterValues(aParameterValues)
 	{}
 
 	std::string mMaterialName;
+	RenderStyle mRenderStyle;
 	MaterialParameterValues mParameterValues;
 };
 

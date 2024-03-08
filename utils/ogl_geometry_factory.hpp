@@ -13,6 +13,7 @@ struct IndexedBuffer {
 	OpenGLResource vao;
 
 	int indexCount;
+	GLenum mode = GL_TRIANGLES;
 };
 
 
@@ -28,7 +29,7 @@ public:
 	}
 
 	void draw() const {
-  		GL_CHECK(glDrawElements(GL_TRIANGLES, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+  		GL_CHECK(glDrawElements(buffer.mode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
 	}
 };
 

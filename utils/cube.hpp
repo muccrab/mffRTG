@@ -8,8 +8,12 @@ public:
 	Cube() {}
 
 	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
-		mShaderProgram = aMaterialFactory.getShaderProgram(mMaterialParams.mMaterialName);
-		mGeometry = aGeometryFactory.getCube();
+		for (auto &mode : mRenderInfos) {
+			mode.second.shaderProgram = aMaterialFactory.getShaderProgram(mode.second.materialParams.mMaterialName);
+			if (mode.second.materialParams.mRenderStyle == RenderStyle::Solid) {
+				mode.second.geometry = aGeometryFactory.getCube();
+			}
+		}
 	}
 protected:
 };

@@ -1,5 +1,20 @@
 #include "ogl_geometry_factory.hpp"
 
+//glPrimitiveRestartIndex(0xFFFFFFFF);
+
+
+const float cubeVertices[] = {
+	// Positions
+	-0.5f, -0.5f, -0.5f,  // 0. Back face
+	0.5f, -0.5f, -0.5f,  // 1.
+	-0.5f,  0.5f, -0.5f,  // 2.
+	0.5f,  0.5f, -0.5f,  // 3.
+	-0.5f, -0.5f,  0.5f,  // 4. Front face
+	0.5f, -0.5f,  0.5f,  // 5.
+	-0.5f,  0.5f,  0.5f,  // 6.
+	0.5f,  0.5f,  0.5f   // 7.
+};
+
 
 inline IndexedBuffer
 generateCubeBuffers() {
@@ -12,18 +27,6 @@ generateCubeBuffers() {
 
 	// Cube vertices: 3 for vertex position.
 	// Each face of the cube is made of 2 triangles, so 6 vertices per face
-	float vertices[] = {
-		// Positions
-		-0.5f, -0.5f, -0.5f,  // 0. Back face
-		0.5f, -0.5f, -0.5f,  // 1.
-		-0.5f,  0.5f, -0.5f,  // 2.
-		0.5f,  0.5f, -0.5f,  // 3.
-		-0.5f, -0.5f,  0.5f,  // 4. Front face
-		0.5f, -0.5f,  0.5f,  // 5.
-		-0.5f,  0.5f,  0.5f,  // 6.
-		0.5f,  0.5f,  0.5f   // 7.
-	};
-
 	unsigned int indices[] = {
 		// Back face
 		0, 1, 3, 0, 3, 2,
@@ -43,7 +46,7 @@ generateCubeBuffers() {
 	GL_CHECK(glBindVertexArray(buffers.vao.get()));
 
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, buffers.vbo.get()));
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW));
 
 	GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.ebo.get()));
 	GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
@@ -56,6 +59,7 @@ generateCubeBuffers() {
 	GL_CHECK(glBindVertexArray(0));
 
 	buffers.indexCount = 36;
+	buffers.mode = GL_TRIANGLES;
 	return buffers;
 }
 

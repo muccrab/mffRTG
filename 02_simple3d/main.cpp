@@ -62,12 +62,8 @@ int main() {
 
 		Renderer renderer;
 
-		for (auto &scene : scenes) {
-
-		}
-
 		window.runLoop([&] {
-			renderer.renderScene(scenes[currentSceneIdx], camera);
+			renderer.renderScene(scenes[currentSceneIdx], camera, RenderOptions{"solid"});
 		});
 	} catch (ShaderCompilationError &exc) {
 		std::cerr

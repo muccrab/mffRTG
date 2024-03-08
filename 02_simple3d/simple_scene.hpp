@@ -30,8 +30,10 @@ SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &
 
 	cube->setName("CUBE");
 	cube->setMaterial(
+		"solid",
 		MaterialParameters(
 			"solid_color",
+			RenderStyle::Solid,
 			{
 				{ "color", glm::vec3(1.0f, 0.5f, 0.0f)}
 			})

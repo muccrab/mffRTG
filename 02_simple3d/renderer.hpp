@@ -8,18 +8,17 @@
 
 class Renderer {
 public:
-	template<typename TScene>
-	void renderScene(const TScene &aScene, const Camera &aCamera) {
+	template<typename TScene, typename TCamera>
+	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
 		GL_CHECK(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
 
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
-		auto renderOptions = RenderOptions{};
 		std::vector<RenderData> renderData;
 		for (const auto &object : aScene.getObjects()) {
-			auto data = object.getRenderData(renderOptions);
+			auto data = object.getRenderData(aRenderOptions);
 			if (data) {
 				renderData.push_back(data.value());
 			}
@@ -36,11 +35,6 @@ public:
 					modelMat,
 					aCamera.getViewMatrix(),
 					aCamera.getProjectionMatrix());
-			// shaderProgram.setUniformMatrices(
-			// 		glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f)),
-			// 		glm::mat4(1.0f),
-			// 		glm::mat4(1.0f)
-			// 		);
 
 			geometry.bind();
 			geometry.draw();

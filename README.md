@@ -24,3 +24,7 @@ A static header file like GL.h cannot provide this level of flexibility.
 
 OpenGL requires either native window or window created by specialized library, which will provide OpenGL context and framebuffer.
 Basic multiplatform solution is [GLFW](https://www.glfw.org/).
+
+## GLM
+
+[GLM](https://github.com/g-truc/glm) provides linear algebra library with similar syntax to GLSL. Download [here](https://github.com/g-truc/glm/releases/tag/1.0.1).

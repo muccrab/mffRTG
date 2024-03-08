@@ -15,7 +15,9 @@ struct RenderData {
 	const AGeometry &mGeometry;
 };
 
-struct RenderOptions {};
+struct RenderOptions {
+	std::string mode;
+};
 
 class SceneObject {
 public:
@@ -50,8 +52,6 @@ public:
 
 	// Rendering interface
 	virtual std::optional<RenderData> getRenderData(const RenderOptions &aOptions) const {
-
-		std::cout << mName << " BASE DATA\n";
 		return std::optional<RenderData>();
 	}
 
