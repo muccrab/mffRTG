@@ -55,11 +55,23 @@ if(WIN32)
 	else()
 		message(FATAL_ERROR "GLFW root directory not found.")
 	endif()
+
+	find_path(GLM_ROOT_DIR NAMES glm/glm.hpp
+		PATHS
+			"${CMAKE_CURRENT_SOURCE_DIR}/glm-1.0.1"
+			"${CMAKE_CURRENT_SOURCE_DIR}/../glm-1.0.1"
+		NO_DEFAULT_PATH)
+
+	add_library(glm INTERFACE)
+	target_include_directories(glm INTERFACE "${GLM_ROOT_DIR}")
 else()
 	find_package(glfw3 3.3 REQUIRED)
+	find_package(glm REQUIRED)
+	add_compile_definitions("-DGLM_FORCE_SWIZZLE")
 endif()
 
-find_package(glm REQUIRED)
+
+# add_library(utils )
 
 # Add subdirectories here
 add_subdirectory(01_triangle)
