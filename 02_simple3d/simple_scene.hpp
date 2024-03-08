@@ -17,7 +17,7 @@ public:
 	}
 
 	auto getObjects() const {
-		return mObjects | std::views::transform([](const auto &aPtr) { return *aPtr; });
+		return mObjects | std::views::transform([](const auto &aPtr) -> const SceneObject& { return *aPtr; });
 	}
 protected:
 	std::vector<std::shared_ptr<SceneObject>> mObjects;
@@ -28,6 +28,7 @@ SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &
 	SimpleScene scene;
 	auto cube = std::make_shared<Cube>();
 
+	cube->setName("CUBE");
 	cube->setMaterial(
 		MaterialParameters(
 			"solid_color",
@@ -37,10 +38,8 @@ SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &
 		);
 	cube->prepareRenderData(aMaterialFactory, aGeometryFactory);
 
+	// cube->setRotation(glm::quat(glm::vec3(0.0f, glm::radians(45.0f), 0.0f)));
 	scene.addObject(cube);
 	return scene;
 }
 
-SimpleScene createSphereScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
-	return SimpleScene();
-}

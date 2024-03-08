@@ -7,7 +7,7 @@ class Cube: public MeshObject {
 public:
 	Cube() {}
 
-	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
+	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
 		mShaderProgram = aMaterialFactory.getShaderProgram(mMaterialParams.mMaterialName);
 		mGeometry = aGeometryFactory.getCube();
 	}

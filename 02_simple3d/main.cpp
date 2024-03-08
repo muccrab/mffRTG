@@ -17,14 +17,8 @@
 #include "ogl_geometry_factory.hpp"
 #include "material_factory.hpp"
 
-struct AppConfig {
+#include <glm/gtx/string_cast.hpp>
 
-};
-
-void handleUserInput(AppConfig &aConfig, Window &aWindow) {
-
-
-}
 
 int main() {
 	// Initialize GLFW
@@ -35,24 +29,56 @@ int main() {
 
 	try {
 		auto window = Window();
-		// window.setInputHandler([&config](Window &aWindow){
-		// 	handleUserInput(window, config);
-		// });
+		MouseTracking mouseTracking;
+		std::cout << "*******************\n";
+		Camera camera(window.aspectRatio());
+		camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
+		camera.lookAt(glm::vec3());
+		// camera.printInfo(std::cout);
+		// std::cout << "*******************\n";
+		// camera.setPosition(glm::vec3(-5.0f, 0.0f, -5.0f));
+		// camera.lookAt(glm::vec3());
+		// std::cout << "*******************\n";
+		// // camera.setRotation(glm::quat(glm::vec3(0.0f, glm::radians(45.0f), 0.0f)));
+		// camera.printInfo(std::cout);
+                //
+		// glm::vec4 newpos =  camera.getViewMatrix()*glm::vec4(0.0f, 0.0f, 0.0f, 1.0);
+		// std::cout << "newpos: " << glm::to_string(newpos) << "\n";
+		// glm::vec4 newpos2 =  camera.getProjectionMatrix()*camera.getViewMatrix()*glm::vec4(0.0f, 0.0f, 0.0f, 1.0);
+		// std::cout << "newpos2: " << glm::to_string(newpos2) << "\n";
+		// std::cout << "*******************\n";
+		// camera.setPosition(glm::vec3(-5.0f, 0.0f, 0.0f));
+		// camera.lookAt(glm::vec3());
+                //
+		window.onResize([&camera, &window](int width, int height) {
+				camera.setAspectRatio(window.aspectRatio());
+			});
+
+		window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
+				mouseTracking.update(aWin);
+				if (glfwGetMouseButton(aWin, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+					std::cout << "MOUSE DOWN " << glm::to_string(mouseTracking.offset()) << "\n";
+					camera.orbit(-0.4f * mouseTracking.offset(), glm::vec3());
+				}
+				if (glfwGetKey(aWin, GLFW_KEY_ENTER) == GLFW_PRESS) {
+					camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
+					camera.lookAt(glm::vec3());
+				}
+
+			});
 
 		OGLMaterialFactory materialFactory;
 		materialFactory.loadShadersFromDir("./shaders/");
-		materialFactory.loadTexturesFromDir("./textures/");
+		// materialFactory.loadTexturesFromDir("./textures/");
 
 		OGLGeometryFactory geometryFactory;
 
 
 		std::array<SimpleScene, 2> scenes {
 			createCubeScene(materialFactory, geometryFactory),
-			createSphereScene(materialFactory, geometryFactory)
 		};
 		int currentSceneIdx = 0;
 
-		Camera camera(window.aspectRatio());
 		Renderer renderer;
 
 		for (auto &scene : scenes) {

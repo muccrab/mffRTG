@@ -6,6 +6,9 @@
 #include <variant>
 #include <fstream>
 
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 #include "shader.hpp"
 
 namespace fs = std::filesystem;
@@ -128,10 +131,37 @@ std::string loadShaderSource(const fs::path& filePath) {
 
 class OGLShaderProgram: public AShaderProgram {
 public:
-	OGLShaderProgram(OpenGLResource &&aProgram)
+	OGLShaderProgram(
+		OpenGLResource &&aProgram,
+		GLint modelMat,
+		GLint viewMat,
+		GLint projMat)
 		: program(std::move(aProgram))
+		, u_modelMat(modelMat)
+		, u_viewMat(viewMat)
+		, u_projMat(projMat)
 	{}
 	OpenGLResource program;
+	GLint u_modelMat;
+	GLint u_viewMat;
+	GLint u_projMat;
+
+	void use() const { GL_CHECK(glUseProgram(program.get())); }
+	void setUniformMatrices(
+			const glm::mat4 &aModel,
+			const glm::mat4 &aView,
+			const glm::mat4 &aProj) const
+	{
+		// std::cout << "Matrices: \n"
+		// 	<< "Model " << glm::to_string(aModel) << "\n"
+		// 	<< "View " << glm::to_string(aView) << "\n"
+		// 	<< "Proj " << glm::to_string(aProj) << "\n";
+
+		// GL_CHECK(glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(aModel)));
+		GL_CHECK(glUniformMatrix4fv(u_modelMat, 1, GL_FALSE, glm::value_ptr(aModel)));
+		GL_CHECK(glUniformMatrix4fv(u_viewMat, 1, GL_FALSE, glm::value_ptr(aView)));
+		GL_CHECK(glUniformMatrix4fv(u_projMat, 1, GL_FALSE, glm::value_ptr(aProj)));
+	}
 };
 
 class OGLTexture: public ATexture {
@@ -178,9 +208,20 @@ public:
 				       	shaders["fragment"] + " was not compiled.");
 			}
 			auto program = createShaderProgram(vit->second, fit->second);
+			GLint u_modelMat = glGetUniformLocation(program.get(), "u_modelMat");
+			GLint u_viewMat = glGetUniformLocation(program.get(), "u_viewMat");
+			GLint u_projMat = glGetUniformLocation(program.get(), "u_projMat");
+			std::cout << "Model loc: " << u_modelMat << "\n";
+			std::cout << "View loc: " << u_viewMat << "\n";
+			std::cout << "Proj loc: " << u_projMat << "\n";
 			mPrograms.emplace(
 				programFile.first,
-				std::make_shared<OGLShaderProgram>(std::move(program)));
+				std::make_shared<OGLShaderProgram>(
+					std::move(program),
+					u_modelMat,
+					u_viewMat,
+					u_projMat
+					));
 		}
 	}
 

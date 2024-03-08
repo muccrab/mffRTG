@@ -8,6 +8,8 @@ struct IndexedBuffer {
 	OpenGLResource vbo;
 	OpenGLResource ebo;
 	OpenGLResource vao;
+
+	int indexCount;
 };
 
 inline IndexedBuffer
@@ -15,7 +17,8 @@ generateCubeBuffers() {
 	IndexedBuffer buffers {
 		createBuffer(),
 		createBuffer(),
-		createVertexArray()
+		createVertexArray(),
+		0
 	};
 
 	// Cube vertices: 3 for vertex position.
@@ -63,6 +66,7 @@ generateCubeBuffers() {
 	// Unbind VAO
 	GL_CHECK(glBindVertexArray(0));
 
+	buffers.indexCount = 36;
 	return buffers;
 }
 
@@ -73,6 +77,14 @@ public:
 		buffer(std::move(buff))
 	{}
 	IndexedBuffer buffer;
+
+	void bind() const {
+		GL_CHECK(glBindVertexArray(buffer.vao.get()));
+	}
+
+	void draw() const {
+  		GL_CHECK(glDrawElements(GL_TRIANGLES, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+	}
 };
 
 class OGLGeometryFactory: public GeometryFactory {
