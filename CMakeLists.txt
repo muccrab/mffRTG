@@ -64,6 +64,8 @@ if(WIN32)
 
 	add_library(glm INTERFACE)
 	target_include_directories(glm INTERFACE "${GLM_ROOT_DIR}")
+	target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL GLM_FORCE_SWIZZLE)
+	add_library(glm::glm ALIAS glm)
 else()
 	find_package(glfw3 3.3 REQUIRED)
 	find_package(glm REQUIRED)
