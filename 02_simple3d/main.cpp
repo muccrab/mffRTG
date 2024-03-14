@@ -11,7 +11,7 @@
 #include "window.hpp"
 #include "shader.hpp"
 
-#include "simple_scene.hpp"
+#include "scene_definition.hpp"
 #include "renderer.hpp"
 
 #include "ogl_geometry_factory.hpp"
@@ -62,6 +62,7 @@ int main() {
 
 		Renderer renderer;
 
+		renderer.initialize();
 		window.runLoop([&] {
 			renderer.renderScene(scenes[currentSceneIdx], camera, RenderOptions{"solid"});
 		});

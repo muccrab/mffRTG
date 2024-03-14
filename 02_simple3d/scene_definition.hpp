@@ -9,27 +9,15 @@
 
 #include "material_factory.hpp"
 #include "geometry_factory.hpp"
-
-class SimpleScene {
-public:
-	void addObject(std::shared_ptr<SceneObject> aNewObject) {
-		mObjects.push_back(aNewObject);
-	}
-
-	auto getObjects() const {
-		return mObjects | std::views::transform([](const auto &aPtr) -> const SceneObject& { return *aPtr; });
-	}
-protected:
-	std::vector<std::shared_ptr<SceneObject>> mObjects;
-};
+#include "simple_scene.hpp"
 
 
-SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
+inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
 	SimpleScene scene;
 	auto cube = std::make_shared<Cube>();
 
 	cube->setName("CUBE");
-	cube->setMaterial(
+	cube->addMaterial(
 		"solid",
 		MaterialParameters(
 			"solid_color",

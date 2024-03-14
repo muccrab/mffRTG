@@ -9,15 +9,18 @@
 
 class Renderer {
 public:
+
 	void initialize() {
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		GL_CHECK(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 	}
 
+	void clear() {
+		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	}
+
 	template<typename TScene, typename TCamera>
 	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
-		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
-
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
@@ -33,6 +36,7 @@ public:
 		fallbackParameters["u_projMat"] = projection;
 		fallbackParameters["u_viewMat"] = view;
 		fallbackParameters["u_solidColor"] = glm::vec4(0,0,0,1);
+		fallbackParameters["u_viewPos"] = aCamera.getPosition();
 		for (const auto &data: renderData) {
 			const glm::mat4 &modelMat = data.modelMat;
 			const MaterialParameters &params = data.mMaterialParams;

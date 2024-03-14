@@ -30,6 +30,8 @@ public:
 			throw std::runtime_error("Failed to initialize GLAD");
 		}
 
+		glfwSetKeyCallback(mWindow, keyCallback);
+		// glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GLFW_TRUE);
 		glfwSwapInterval(1);
 	}
 
@@ -58,6 +60,20 @@ public:
 
 	void onCheckInput(std::function<void(GLFWwindow*)> aCheckInput) {
 		mCheckInput = aCheckInput;
+	}
+
+	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+		void * ptr = glfwGetWindowUserPointer(window);
+		if (ptr) {
+			Window *winPtr = reinterpret_cast<Window *>(ptr);
+			if (winPtr->mKeyCallback) {
+				winPtr->mKeyCallback(window, key, scancode, action, mods);
+			}
+		}
+	}
+
+	void setKeyCallback(std::function<void(GLFWwindow*, int, int, int, int)> aKeyCallback) {
+		mKeyCallback = aKeyCallback;
 	}
 
 	double elapsedTime() const {
@@ -96,6 +112,7 @@ protected:
 	GLFWwindow* mWindow;
 
 	std::function<void(int, int)> mOnResizeCallback;
+	std::function<void(GLFWwindow*, int, int, int, int)> mKeyCallback;
 
 	std::function<void(GLFWwindow*)> mCheckInput;
 };

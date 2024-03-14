@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sstream>
+#include <iostream>
 #include "ogl_resource.hpp"
 #include "error_handling.hpp"
 
@@ -28,6 +29,34 @@ inline std::string getShaderTypeName(GLenum aShaderType) {
             return "Unknown Shader Type";
     }
 }
+
+inline std::string getGLTypeName(GLenum type) {
+    switch (type) {
+        case GL_FLOAT: return "float";
+        case GL_FLOAT_VEC2: return "vec2";
+        case GL_FLOAT_VEC3: return "vec3";
+        case GL_FLOAT_VEC4: return "vec4";
+        case GL_DOUBLE: return "double";
+        case GL_INT: return "int";
+        case GL_UNSIGNED_INT: return "unsigned int";
+        case GL_BOOL: return "bool";
+        case GL_FLOAT_MAT2: return "mat2";
+        case GL_FLOAT_MAT3: return "mat3";
+        case GL_FLOAT_MAT4: return "mat4";
+        case GL_SAMPLER_2D: return "sampler2D";
+        case GL_SAMPLER_3D: return "sampler3D";
+        case GL_SAMPLER_CUBE: return "samplerCube";
+        case GL_SAMPLER_2D_SHADOW: return "sampler2DShadow";
+        // Add more types as needed
+        default: return "Unknown Type";
+    }
+}
+
+struct UniformInfo {
+	std::string name;
+	GLenum type;
+	GLint location;
+};
 
 
 class ShaderCompilationError: public OpenGLError {
@@ -92,6 +121,27 @@ inline auto createShaderProgram(const std::string& vertexShader, const std::stri
 	auto fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
 	return createShaderProgram(vs, fs);
+}
+
+
+inline std::vector<UniformInfo> listShaderUniforms(const OpenGLResource &aShaderProgram) {
+	std::vector<UniformInfo> uniforms;
+	GLint numUniforms = 0;
+	GL_CHECK(glGetProgramiv(aShaderProgram.get(), GL_ACTIVE_UNIFORMS, &numUniforms));
+
+	std::vector<GLchar> nameData(256);
+	for (GLint i = 0; i < numUniforms; ++i) {
+		GLint arraySize = 0;
+		GLenum type = 0;
+		GLsizei actualLength = 0;
+		GL_CHECK(glGetActiveUniform(aShaderProgram.get(), i, nameData.size(), &actualLength, &arraySize, &type, &nameData[0]));
+		std::string name((char*)nameData.data(), actualLength);
+
+		GLint location = glGetUniformLocation(aShaderProgram.get(), name.c_str());
+
+		uniforms.emplace_back(name, type, location);
+	}
+	return uniforms;
 }
 
 

@@ -10,8 +10,14 @@ public:
 	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
 		for (auto &mode : mRenderInfos) {
 			mode.second.shaderProgram = aMaterialFactory.getShaderProgram(mode.second.materialParams.mMaterialName);
-			if (mode.second.materialParams.mRenderStyle == RenderStyle::Solid) {
-				mode.second.geometry = aGeometryFactory.getCube();
+			getTextures(mode.second.materialParams.mParameterValues, aMaterialFactory);
+			switch (mode.second.materialParams.mRenderStyle) {
+			case RenderStyle::Solid:
+				mode.second.geometry = aGeometryFactory.getCubeNormTex();
+				break;
+			case RenderStyle::Wireframe:
+				mode.second.geometry = aGeometryFactory.getCubeOutline();
+				break;
 			}
 		}
 	}

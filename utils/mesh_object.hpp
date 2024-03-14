@@ -2,6 +2,9 @@
 
 #include "scene_object.hpp"
 #include "material_factory.hpp"
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 struct RenderInfo {
 	MaterialParameters materialParams;
@@ -13,7 +16,7 @@ class MeshObject: public SceneObject {
 public:
 	MeshObject() {};
 
-	void setMaterial(std::string aMode, MaterialParameters aMaterialParams) {
+	void addMaterial(std::string aMode, MaterialParameters aMaterialParams) {
 		mRenderInfos[aMode].materialParams = aMaterialParams;
 	}
 
@@ -35,9 +38,35 @@ public:
 			});
 	}
 protected:
+	void getTextures(MaterialParameterValues &aParams, MaterialFactory &aMaterialFactory) {
+		for (auto &value : aParams) {
+			TextureInfo * texture = std::get_if<TextureInfo>(&(value.second));
+			if (!texture) {
+				continue;
+			}
+			texture->textureData = aMaterialFactory.getTexture(texture->name);
+		}
+
+	}
+
+
 	std::map<std::string, RenderInfo> mRenderInfos;
-	// MaterialParameters mMaterialParams;
-	// std::shared_ptr<AShaderProgram> mShaderProgram;
-	// std::shared_ptr<AGeometry> mGeometry;
 };
 
+class LoadedMeshObject: public MeshObject {
+public:
+	LoadedMeshObject(const fs::path &aMeshPath)
+       		: mMeshPath(aMeshPath)
+	{
+	}
+
+	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
+		for (auto &mode : mRenderInfos) {
+			mode.second.shaderProgram = aMaterialFactory.getShaderProgram(mode.second.materialParams.mMaterialName);
+			getTextures(mode.second.materialParams.mParameterValues, aMaterialFactory);
+			mode.second.geometry = aGeometryFactory.loadMesh(mMeshPath, mode.second.materialParams.mRenderStyle);
+		}
+	}
+protected:
+	fs::path mMeshPath;
+};

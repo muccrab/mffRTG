@@ -1,0 +1,136 @@
+#pragma once
+
+#include <filesystem>
+#include <regex>
+#include <map>
+#include <variant>
+#include <fstream>
+
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
+#include "shader.hpp"
+#include "material_factory.hpp"
+
+namespace fs = std::filesystem;
+
+using ShaderFiles = std::map<std::string, fs::path>;
+using ShaderProgramFiles = std::map<std::string, ShaderFiles>;
+
+class OGLTexture: public ATexture {
+public:
+	OGLTexture(
+		OpenGLResource &&aTexture)
+		: texture(std::move(aTexture))
+	{}
+	OpenGLResource texture;
+
+};
+
+template<class>
+inline constexpr bool always_false_v = false;
+
+inline int setUniform(const UniformInfo &aInfo, const MaterialParam &aParam, int aNextTexturingUnit) {
+	std::visit([&aInfo, &aNextTexturingUnit](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, float>) {
+			GL_CHECK(glUniform1f(aInfo.location, arg));
+		} else if constexpr (std::is_same_v<T, glm::vec2>) {
+			GL_CHECK(glUniform2fv(aInfo.location, 1, glm::value_ptr(arg)));
+		} else if constexpr (std::is_same_v<T, glm::vec3>) {
+			GL_CHECK(glUniform3fv(aInfo.location, 1, glm::value_ptr(arg)));
+		} else if constexpr (std::is_same_v<T, glm::vec4>) {
+			GL_CHECK(glUniform4fv(aInfo.location, 1, glm::value_ptr(arg)));
+		} else if constexpr (std::is_same_v<T, glm::mat3>) {
+			GL_CHECK(glUniformMatrix3fv(aInfo.location, 1, GL_FALSE, glm::value_ptr(arg)));
+		} else if constexpr (std::is_same_v<T, glm::mat4>) {
+			GL_CHECK(glUniformMatrix4fv(aInfo.location, 1, GL_FALSE, glm::value_ptr(arg)));
+		} else if constexpr (std::is_same_v<T, TextureInfo>) {
+			if (arg.textureData) {
+				GL_CHECK(glActiveTexture(GL_TEXTURE0 + aNextTexturingUnit));
+				const OGLTexture &texture = static_cast<const OGLTexture &>(*arg.textureData);
+
+				GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture.texture.get()));
+				GL_CHECK(glUniform1i(aInfo.location, aNextTexturingUnit));
+				++aNextTexturingUnit;
+			}
+		} else {
+			static_assert(always_false_v<T>, "non-exhaustive visitor!");
+		}},
+		aParam);
+	return aNextTexturingUnit;
+}
+
+class OGLShaderProgram: public AShaderProgram {
+public:
+	OGLShaderProgram(
+		OpenGLResource &&aProgram,
+		std::vector<UniformInfo> aUniforms
+		)
+		: program(std::move(aProgram))
+		, uniforms(std::move(aUniforms))
+	{}
+	OpenGLResource program;
+	std::vector<UniformInfo> uniforms;
+
+	void use() const { GL_CHECK(glUseProgram(program.get())); }
+	void setMaterialParameters(
+		const MaterialParameterValues &aParameters,
+		const MaterialParameterValues & aFallback) const
+	{
+		int nextTexturingUnit = 0;
+		for (auto &uniform : uniforms) {
+			auto it = aParameters.find(uniform.name);
+			if (it == aParameters.end()) {
+				it = aFallback.find(uniform.name);
+				if (it == aFallback.end()) {
+					// No value for uniform - skip setting
+					continue;
+				}
+			}
+			nextTexturingUnit = setUniform(uniform, it->second, nextTexturingUnit);
+		}
+
+	}
+	// void setUniformMatrices(
+	// 		const glm::mat4 &aModel,
+	// 		const glm::mat4 &aView,
+	// 		const glm::mat4 &aProj) const
+	// {
+	// 	GL_CHECK(glUniformMatrix4fv(u_modelMat, 1, GL_FALSE, glm::value_ptr(aModel)));
+	// 	GL_CHECK(glUniformMatrix4fv(u_viewMat, 1, GL_FALSE, glm::value_ptr(aView)));
+	// 	GL_CHECK(glUniformMatrix4fv(u_projMat, 1, GL_FALSE, glm::value_ptr(aProj)));
+	// }
+};
+
+
+class OGLMaterialFactory: public MaterialFactory {
+public:
+	void loadShadersFromDir(fs::path aShaderDir);
+	void loadTexturesFromDir(fs::path aTextureDir);
+
+	std::shared_ptr<AShaderProgram> getShaderProgram(const std::string &aName) {
+		auto it = mPrograms.find(aName);
+		if (it == mPrograms.end()) {
+			throw OpenGLError("Shader program " + aName + " not found");
+		}
+
+		return it->second;
+	};
+
+	std::shared_ptr<ATexture> getTexture(const std::string &aName) {
+		auto it = mTextures.find(aName);
+		if (it == mTextures.end()) {
+			throw OpenGLError("Texture " + aName + " not found");
+		}
+
+		return it->second;
+	};
+
+protected:
+	using CompiledPrograms = std::map<std::string, std::shared_ptr<OGLShaderProgram>>;
+	using Textures = std::map<std::string, std::shared_ptr<OGLTexture>>;
+
+	CompiledPrograms mPrograms;
+	Textures mTextures;
+};
