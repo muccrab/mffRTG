@@ -134,7 +134,7 @@ inline std::vector<UniformInfo> listShaderUniforms(const OpenGLResource &aShader
 		GLint arraySize = 0;
 		GLenum type = 0;
 		GLsizei actualLength = 0;
-		GL_CHECK(glGetActiveUniform(aShaderProgram.get(), i, nameData.size(), &actualLength, &arraySize, &type, &nameData[0]));
+		GL_CHECK(glGetActiveUniform(aShaderProgram.get(), i, GLsizei(nameData.size()), &actualLength, &arraySize, &type, &nameData[0]));
 		std::string name((char*)nameData.data(), actualLength);
 
 		GLint location = glGetUniformLocation(aShaderProgram.get(), name.c_str());

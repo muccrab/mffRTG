@@ -2,6 +2,7 @@
 
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
+#include <array>
 #include "vertex.hpp"
 
 #include "obj_file_loading.hpp"
@@ -143,7 +144,7 @@ generateCubeBuffersNormTex() {
 	std::vector<unsigned int> indices;
 	for (int i = 0; i < 3; ++i) {
 		for (int direction = -1; direction < 2; direction +=2) {
-			int indexOffset = vertices.size();
+			unsigned int indexOffset = vertices.size();
 			for (int j = 0; j < 4; ++j) {
 				vertices.push_back(VertexNormTex(
 					insertDimension(unitFaceVertices[j], i, direction * 0.5f),
@@ -180,7 +181,7 @@ generateCubeBuffersNormTex() {
 	// Unbind VAO
 	GL_CHECK(glBindVertexArray(0));
 
-	buffers.indexCount = indices.size();
+	buffers.indexCount = unsigned(indices.size());
 	buffers.mode = GL_TRIANGLES;
 	return buffers;
 }
@@ -218,7 +219,7 @@ generateMeshBuffersNormTex(const ObjMesh &aMesh) {
 	// Unbind VAO
 	GL_CHECK(glBindVertexArray(0));
 
-	buffers.indexCount = aMesh.indices.size();
+	buffers.indexCount = unsigned(aMesh.indices.size());
 	buffers.mode = GL_TRIANGLES;
 	return buffers;
 };

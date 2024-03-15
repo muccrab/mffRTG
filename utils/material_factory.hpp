@@ -45,7 +45,7 @@ public:
 	{}
 
 	std::string mMaterialName;
-	RenderStyle mRenderStyle;
+	RenderStyle mRenderStyle = RenderStyle::Solid;
 	MaterialParameterValues mParameterValues;
 };
 

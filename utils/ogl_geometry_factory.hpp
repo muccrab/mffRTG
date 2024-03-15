@@ -16,7 +16,7 @@ struct IndexedBuffer {
 	OpenGLResource ebo;
 	OpenGLResource vao;
 
-	int indexCount;
+	unsigned int indexCount = 0;
 	GLenum mode = GL_TRIANGLES;
 };
 
