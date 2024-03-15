@@ -91,7 +91,16 @@ inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, Geometry
 		MaterialParameters(
 			"phong",
 			RenderStyle::Solid,
-			{}
+			{
+				{ "light.ambient", glm::vec3(0.3, 0.3, 0.3) },
+				{ "light.diffuse", glm::vec3(0.6, 0.6, 0.6) },
+				{ "light.position", glm::vec3(3.0, 5.0, 6.0) },
+				{ "light.specular", glm::vec3(1.0, 1.0, 1.0) },
+				{ "material.ambient", glm::vec3(0.1, 0.1, 0.1) },
+				{ "material.diffuse", glm::vec3(1.0, 0.5, 0.31) },
+				{ "material.shininess", 32.0f },
+				{ "material.specular", glm::vec3(0.5, 0.5, 0.5) },
+			}
 			)
 		);
 	mesh->addMaterial(

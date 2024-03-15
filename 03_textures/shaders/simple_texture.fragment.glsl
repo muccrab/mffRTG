@@ -4,7 +4,7 @@ uniform sampler2D u_textureSampler;
 
 out vec4 out_fragColor;
 
-in vec4 f_normal;
+in vec3 f_normal;
 in vec2 f_texCoord;
 
 void main() {

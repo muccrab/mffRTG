@@ -111,8 +111,31 @@ inline auto createShaderProgram(const OpenGLResource& vertexShader, OpenGLResour
 	GL_CHECK(glAttachShader(program.get(), vertexShader.get()));
 	GL_CHECK(glAttachShader(program.get(), fragmentShader.get()));
 	GL_CHECK(glLinkProgram(program.get()));
+
+	GLint isLinked = 0;
+	GL_CHECK(glGetProgramiv(program.get(), GL_LINK_STATUS, &isLinked));
+	if (isLinked == GL_FALSE) {
+		GLint maxLength = 0;
+		GL_CHECK(glGetProgramiv(program.get(), GL_INFO_LOG_LENGTH, &maxLength));
+
+		std::vector<GLchar> infoLog(maxLength);
+		GL_CHECK(glGetProgramInfoLog(program.get(), maxLength, &maxLength, &infoLog[0]));
+
+		throw OpenGLError("Shader program linking failed:" + std::string(infoLog.begin(), infoLog.end()));
+	}
 	GL_CHECK(glValidateProgram(program.get()));
-	// TODO - check validation result
+
+	GLint isValid = 0;
+	GL_CHECK(glGetProgramiv(program.get(), GL_VALIDATE_STATUS, &isValid));
+	if (isValid == GL_FALSE) {
+		GLint maxLength = 0;
+		glGetProgramiv(program.get(), GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(program.get(), maxLength, &maxLength, &infoLog[0]);
+
+		throw OpenGLError("Shader program validation failed:" + std::string(infoLog.begin(), infoLog.end()));
+	}
 	return program;
 }
 
