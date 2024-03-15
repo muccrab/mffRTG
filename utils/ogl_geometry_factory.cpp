@@ -144,11 +144,11 @@ generateCubeBuffersNormTex() {
 	std::vector<unsigned int> indices;
 	for (int i = 0; i < 3; ++i) {
 		for (int direction = -1; direction < 2; direction +=2) {
-			unsigned int indexOffset = vertices.size();
+			unsigned indexOffset = unsigned(vertices.size());
 			for (int j = 0; j < 4; ++j) {
 				vertices.push_back(VertexNormTex(
 					insertDimension(unitFaceVertices[j], i, direction * 0.5f),
-					insertDimension(glm::vec2(), i, direction),
+					insertDimension(glm::vec2(), i, float(direction)),
 					unitFaceVertices[j] + glm::vec2(0.5f, 0.5f)));
 			}
 

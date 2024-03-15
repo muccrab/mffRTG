@@ -55,6 +55,6 @@ inline Geometry createGeometry() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	geometry.size = vertices.size() / 3;
+	geometry.size = int(vertices.size() / 3);
 	return geometry;
 }

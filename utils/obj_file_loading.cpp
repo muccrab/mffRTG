@@ -80,8 +80,8 @@ ObjMesh loadOBJ(const fs::path& aObjPath) {
 						texCoords[fp[1]]
 					};
 					mesh.vertices.push_back(vertex);
-					vertexIndices[fp] = mesh.vertices.size() - 1;
-					mesh.indices.push_back(mesh.vertices.size() -1);
+					vertexIndices[fp] = unsigned(mesh.vertices.size() - 1);
+					mesh.indices.push_back(unsigned(mesh.vertices.size() -1));
 				} else {
 					mesh.indices.push_back(it->second);
 				}

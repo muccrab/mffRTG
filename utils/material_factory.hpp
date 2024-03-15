@@ -12,7 +12,9 @@
 namespace fs = std::filesystem;
 
 class ATexture {
-
+public:
+	ATexture() {}
+	virtual ~ATexture() {}
 };
 
 struct TextureInfo {
@@ -37,7 +39,9 @@ enum class RenderStyle {
 
 class MaterialParameters {
 public:
-	MaterialParameters() {}
+	MaterialParameters()
+       		: mRenderStyle(RenderStyle::Solid)
+	{}
 	MaterialParameters(const std::string &aMaterialName, RenderStyle aRenderStyle, const MaterialParameterValues &aParameterValues)
 		: mMaterialName(aMaterialName)
 		, mRenderStyle(aRenderStyle)
@@ -45,12 +49,14 @@ public:
 	{}
 
 	std::string mMaterialName;
-	RenderStyle mRenderStyle = RenderStyle::Solid;
+	RenderStyle mRenderStyle;
 	MaterialParameterValues mParameterValues;
 };
 
 class AShaderProgram {
-
+public:
+	AShaderProgram() {}
+	virtual ~AShaderProgram() {}
 };
 
 class MaterialFactory {

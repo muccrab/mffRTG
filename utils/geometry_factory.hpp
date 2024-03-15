@@ -3,7 +3,9 @@
 #include "material_factory.hpp"
 
 class AGeometry {
-
+public:
+	AGeometry() {}
+	virtual ~AGeometry() {}
 };
 
 class GeometryFactory {
