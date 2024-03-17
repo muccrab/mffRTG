@@ -59,6 +59,11 @@ public:
 	virtual ~AShaderProgram() {}
 };
 
+inline std::string convertToIdentifier(std::string aId) {
+	std::replace(aId.begin(), aId.end(), '\\', '/');
+	return aId;
+}
+
 class MaterialFactory {
 public:
 	virtual std::shared_ptr<AShaderProgram> getShaderProgram(const std::string &aName) = 0;

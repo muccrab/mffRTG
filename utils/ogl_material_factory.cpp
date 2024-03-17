@@ -210,12 +210,12 @@ void OGLMaterialFactory::loadTexturesFromDir(fs::path aTextureDir) {
 	aTextureDir = fs::canonical(aTextureDir);
 	auto imageFiles = findImageFiles(aTextureDir);
 
-	for (const auto &textureFile : imageFiles) {
+	for (const auto& textureFile : imageFiles) {
 		auto imageData = loadImage(textureFile);
 		if (imageData) {
 			auto texture = createTextureFromData(*imageData);
 
-			auto name = fs::relative(textureFile, aTextureDir).string();
+			auto name = convertToIdentifier(fs::relative(textureFile, aTextureDir).string());
 			mTextures[name] = std::make_shared<OGLTexture>(std::move(texture));
 			std::cout << "Loaded texture: " << name << " from " << textureFile << "\n";
 		}

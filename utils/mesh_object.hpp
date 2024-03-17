@@ -46,9 +46,7 @@ protected:
 			}
 			texture->textureData = aMaterialFactory.getTexture(texture->name);
 		}
-
 	}
-
 
 	std::map<std::string, RenderInfo> mRenderInfos;
 };

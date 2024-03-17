@@ -119,7 +119,7 @@ public:
 	};
 
 	std::shared_ptr<ATexture> getTexture(const std::string &aName) {
-		auto it = mTextures.find(aName);
+		auto it = mTextures.find(convertToIdentifier(aName));
 		if (it == mTextures.end()) {
 			throw OpenGLError("Texture " + aName + " not found");
 		}
