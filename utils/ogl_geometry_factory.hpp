@@ -6,20 +6,10 @@
 #include <filesystem>
 
 #include "geometry_factory.hpp"
-#include "ogl_resource.hpp"
+#include "ogl_geometry_construction.hpp"
 
 
 namespace fs = std::filesystem;
-
-struct IndexedBuffer {
-	OpenGLResource vbo;
-	OpenGLResource ebo;
-	OpenGLResource vao;
-
-	unsigned int indexCount = 0;
-	GLenum mode = GL_TRIANGLES;
-};
-
 
 class OGLGeometry: public AGeometry {
 public:
