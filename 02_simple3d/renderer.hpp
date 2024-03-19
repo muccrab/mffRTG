@@ -16,7 +16,7 @@ public:
 
 	template<typename TScene, typename TCamera>
 	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
-		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
+		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
