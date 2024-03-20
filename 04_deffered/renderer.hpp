@@ -9,9 +9,19 @@
 class QuadRenderer {
 public:
 	QuadRenderer()
-		:
+		: mQuad(generateQuadTex)
+	{}
 
-}
+	void render(const OGLShaderProgram &aShaderProgram, MaterialParameterValues &aParameters) const {
+		aShaderProgram.use();
+		aShaderProgram.setMaterialParameters(aParameters, MaterialParameterValues());
+		GL_CHECK(glBindVertexArray(mQuad.vao.get()));
+  		GL_CHECK(glDrawElements(mQuad.mode, mQuad.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+	}
+protected:
+
+	IndexedBuffer mQuad;
+};
 
 
 class DefferedRender {

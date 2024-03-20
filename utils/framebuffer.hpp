@@ -1,27 +1,55 @@
 #pragma once
 
+#include <glad/glad.h>
+
 struct AttachmentDescription {
 
 }
 
+template<GLenum tFormat, GLenum tType, GLint tInternalFormat>
+struct CADescription {
+	static constexpr GLenum Format = tFormat;
+	static constexpr GLenum Type = tType;
+	static constexpr GLint InternalFormat = tInternalFormat;
+};
+
+template<typename... TDescriptions>
+struct ColorAttachmentDescriptions {
+	static constexpr int count = sizeof...(Descriptions);
+};
+
+template<typename TColorAttachmentDescriptions>
 class Framebuffer {
 public:
+	static constexpr int cColorAttachmentCount = TColorAttachmentDescriptions::count;
+
 	Framebuffer()
 	{
 
 	}
 
-	OpenGLResource createTextureAttachment() {
-		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	init
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	OpenGLResource createColorAttachment(
+			int aAttachmentIndex,
+			int aWidth,
+			int aHeight,
+			GLint aInternalFormat = GL_RGBA,
+			GLenum aFormat = GL_RGBA,
+			GLenum aType = GL_FLOAT)
+	{
+		auto textureID = createTexture();
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, textureID.get()));
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, aWidth, aHeight, 0, aFormat, aType, NULL));
+
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 		// Attach the texture to the FBO
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
+		GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + aAttachmentIndex, GL_TEXTURE_2D, textureID.get(), 0));
+		return textureID;
 	}
 
 	OpenGLResource createDepthAndStencilBuffers() {
@@ -44,5 +72,9 @@ public:
 			std::cerr << "Framebuffer is not complete!" << std::endl;
 		}
 	}
+
+
+	std::array<OpenGLResource, cColorAttachmentCount> mColorTextures;
+
 
 };

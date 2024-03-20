@@ -13,6 +13,8 @@ struct IndexedBuffer {
 };
 
 
+IndexedBuffer
+generateQuadTex();
 
 IndexedBuffer
 generateCubeOutlineBuffers();
