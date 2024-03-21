@@ -1,34 +1,54 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <ogl_material_factory.hpp>
 
-struct AttachmentDescription {
-
-}
-
-template<GLenum tFormat, GLenum tType, GLint tInternalFormat>
 struct CADescription {
-	static constexpr GLenum Format = tFormat;
-	static constexpr GLenum Type = tType;
-	static constexpr GLint InternalFormat = tInternalFormat;
+	GLenum format;
+	GLenum type;
+	GLint internalFormat;
 };
 
-template<typename... TDescriptions>
-struct ColorAttachmentDescriptions {
-	static constexpr int count = sizeof...(Descriptions);
-};
 
-template<typename TColorAttachmentDescriptions>
 class Framebuffer {
 public:
-	static constexpr int cColorAttachmentCount = TColorAttachmentDescriptions::count;
-
-	Framebuffer()
+	Framebuffer(
+		int aWidth,
+		int aHeight,
+		const std::vector<CADescription> &aColorAttachmentDescriptions)
+		: mWidth(aWidth)
+		, mHeight(aHeight)
+		, mFramebuffer(createFramebuffer())
+		, mColorAttachmentDescriptions(aColorAttachmentDescriptions)
 	{
-
+		init();
 	}
 
-	init
+	void bind() {
+		GL_CHECK(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebuffer.get()));
+	}
+
+	void unbind() {
+		GL_CHECK(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+	}
+
+	void init() {
+		bind();
+		mColorAttachments.resize(mColorAttachmentDescriptions.size());
+		for (int i = 0; i < mColorAttachmentDescriptions.size(); ++i) {
+			auto texture = createColorAttachment(
+					i,
+					mWidth,
+					mHeight,
+					mColorAttachmentDescriptions[i].internalFormat,
+					mColorAttachmentDescriptions[i].format,
+					mColorAttachmentDescriptions[i].type);
+			mColorAttachments[i] = std::make_shared<OGLTexture>(std::move(texture));
+		}
+		mDepthBuffer = createDepthAndStencilBuffers(mWidth, mHeight);
+		checkStatus();
+		unbind();
+	}
 
 	OpenGLResource createColorAttachment(
 			int aAttachmentIndex,
@@ -52,29 +72,44 @@ public:
 		return textureID;
 	}
 
-	OpenGLResource createDepthAndStencilBuffers() {
-		GLuint rbo;
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	OpenGLResource createDepthAndStencilBuffers(
+			int aWidth,
+			int aHeight)
+	{
+		auto rbo = createRenderBuffer();
+		GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, rbo.get()));
+		GL_CHECK(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, aWidth, aHeight));
+		GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo.get()));
+		return rbo;
 
 	}
 
 	void setDrawBuffers() {
-		GLenum drawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-		glDrawBuffers(4, drawBuffers);
-
+		std::vector<GLenum> drawBuffers;
+		drawBuffers.resize(mColorAttachmentDescriptions.size());
+		for (int i = 0; i < mColorAttachmentDescriptions.size(); ++i) {
+			drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+		}
+		glDrawBuffers(drawBuffers.size(), drawBuffers.data());
 	}
 
 	void checkStatus() {
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			std::cerr << "Framebuffer is not complete!" << std::endl;
+			throw OpenGLError("Framebuffer is not complete!");
 		}
 	}
 
+	std::shared_ptr<OGLTexture> getColorAttachment(int aIdx) {
+		if (aIdx < 0 || aIdx >= mColorAttachments.size()) {
+			throw OpenGLError("Framebuffer - invalid color attachment index.");
+		}
+		return mColorAttachments[aIdx];
+	}
 
-	std::array<OpenGLResource, cColorAttachmentCount> mColorTextures;
-
-
+	int mWidth;
+	int mHeight;
+	OpenGLResource mFramebuffer;
+	std::vector<CADescription> mColorAttachmentDescriptions;
+	std::vector<std::shared_ptr<OGLTexture>> mColorAttachments;
+	OpenGLResource mDepthBuffer;
 };

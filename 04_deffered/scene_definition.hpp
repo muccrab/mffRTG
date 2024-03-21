@@ -11,68 +11,10 @@
 #include "geometry_factory.hpp"
 #include "simple_scene.hpp"
 
-
-inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
+inline SimpleScene createCottageScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
 	SimpleScene scene;
-	auto cube = std::make_shared<Cube>();
-
-	cube->setName("CUBE");
-	cube->addMaterial(
-		"solid",
-		MaterialParameters(
-			"normal_to_color",
-			RenderStyle::Solid,
-			{}
-			)
-		);
-	cube->addMaterial(
-		"wireframe",
-		MaterialParameters(
-			"solid_color",
-			RenderStyle::Wireframe,
-			{}
-			)
-		);
-	cube->prepareRenderData(aMaterialFactory, aGeometryFactory);
-
-	scene.addObject(cube);
-	return scene;
-}
-
-inline SimpleScene createTexturedCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
-	SimpleScene scene;
-	auto cube = std::make_shared<Cube>();
-
-	cube->setName("CUBE");
-	cube->addMaterial(
-		"solid",
-		MaterialParameters(
-			"texture_blend",
-			RenderStyle::Solid,
-			{
-				{ "u_textureSampler1", TextureInfo("brick_wall/Brick_Wall_012_COLOR.jpg") },
-				{ "u_textureSampler2", TextureInfo("pebbles/Pebbles_003_COLOR.jpg") }
-			}
-			)
-		);
-	cube->addMaterial(
-		"wireframe",
-		MaterialParameters(
-			"solid_color",
-			RenderStyle::Wireframe,
-			{}
-			)
-		);
-	cube->prepareRenderData(aMaterialFactory, aGeometryFactory);
-
-	scene.addObject(cube);
-	return scene;
-}
-
-
-inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
-	SimpleScene scene;
-	auto mesh = std::make_shared<LoadedMeshObject>("./geometry/monkey.obj");
+	// auto mesh = std::make_shared<LoadedMeshObject>("./geometry/cottage.obj");
+	auto mesh = std::make_shared<Cube>();
 	// auto mesh = std::make_shared<LoadedMeshObject>("./geometry/box.obj");
 
 	mesh->setScale(glm::vec3(0.5));
@@ -89,9 +31,10 @@ inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, Geometry
 	mesh->addMaterial(
 		"solid",
 		MaterialParameters(
-			"phong",
+			"material_deffered",
 			RenderStyle::Solid,
 			{
+				{ "u_diffuseTexture", TextureInfo("cottage/cottageDif.jpg") },
 				{ "light.ambient", glm::vec3(0.3, 0.3, 0.3) },
 				{ "light.diffuse", glm::vec3(0.6, 0.6, 0.6) },
 				{ "light.position", glm::vec3(3.0, 5.0, 6.0) },
@@ -103,14 +46,14 @@ inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, Geometry
 			}
 			)
 		);
-	mesh->addMaterial(
-		"wireframe",
-		MaterialParameters(
-			"solid_color",
-			RenderStyle::Wireframe,
-			{}
-			)
-		);
+	// mesh->addMaterial(
+	// 	"wireframe",
+	// 	MaterialParameters(
+	// 		"solid_color",
+	// 		RenderStyle::Wireframe,
+	// 		{}
+	// 		)
+	// 	);
 	mesh->prepareRenderData(aMaterialFactory, aGeometryFactory);
 
 	scene.addObject(mesh);

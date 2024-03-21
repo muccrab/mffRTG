@@ -29,7 +29,7 @@ inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 
 		for (const auto &pattern : patterns) {
 			if (std::regex_match(filename, matches, pattern.second) && matches.size() == 2) {
-				std::cout << "Adding " << filename << "\n";
+				std::cout << "Found shader file: " << filename << "\n";
 				shaderFiles[pattern.first][matches[1]] = entry;
 			}
 		}
@@ -92,6 +92,7 @@ void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 	auto &vertexShaderFiles = shaderFiles["vertex"];
 	std::map<std::string, OpenGLResource> vertexShadersCompiled;
 	for (auto &shaderFile : vertexShaderFiles) {
+		std::cout << "Compiling vertex shader: " << shaderFile.second << "\n";
 		auto content = loadShaderSource(shaderFile.second);
 		auto compiledShader = compileShader(GL_VERTEX_SHADER, content);
 		vertexShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
@@ -99,6 +100,7 @@ void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 	auto &fragmentShaderFiles = shaderFiles["fragment"];
 	std::map<std::string, OpenGLResource> fragmentShadersCompiled;
 	for (auto &shaderFile : fragmentShaderFiles) {
+		std::cout << "Compiling fragment shader: " << shaderFile.second << "\n";
 		auto content = loadShaderSource(shaderFile.second);
 		auto compiledShader = compileShader(GL_FRAGMENT_SHADER, content);
 		fragmentShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));

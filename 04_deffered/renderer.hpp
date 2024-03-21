@@ -3,13 +3,14 @@
 #include <vector>
 
 #include "camera.hpp"
+#include "framebuffer.hpp"
 #include "ogl_material_factory.hpp"
 #include "ogl_geometry_factory.hpp"
 
 class QuadRenderer {
 public:
 	QuadRenderer()
-		: mQuad(generateQuadTex)
+		: mQuad(generateQuadTex())
 	{}
 
 	void render(const OGLShaderProgram &aShaderProgram, MaterialParameterValues &aParameters) const {
@@ -23,31 +24,47 @@ protected:
 	IndexedBuffer mQuad;
 };
 
-
-class DefferedRender {
-public:
-	void geometryPass();
-
-	void compositingPass();
-
-	void postprocessing();
-
-};
+inline std::vector<CADescription> getColorNormalPositionAttachments() {
+	return {
+		{ GL_RGBA, GL_FLOAT, GL_RGBA },
+		{ GL_RGBA, GL_FLOAT, GL_RGBA },
+		{ GL_RGBA, GL_FLOAT, GL_RGBA },
+	};
+}
 
 class Renderer {
 public:
+	Renderer(OGLMaterialFactory &aMaterialFactory)
+		: mMaterialFactory(aMaterialFactory)
+	{
+		mCompositingShader = std::static_pointer_cast<OGLShaderProgram>(
+				mMaterialFactory.getShaderProgram("compositing"));
+	}
 
-	void initialize() {
+	void initialize(int aWidth, int aHeight) {
+		mWidth = aWidth;
+		mHeight = aHeight;
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
-		GL_CHECK(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+		GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+
+		mFramebuffer = std::make_unique<Framebuffer>(aWidth, aHeight, getColorNormalPositionAttachments());
+		mCompositingParameters = {
+			{ "u_diffuse", TextureInfo("diffuse", mFramebuffer->getColorAttachment(0)) },
+			{ "u_normal", TextureInfo("diffuse", mFramebuffer->getColorAttachment(1)) },
+			{ "u_position", TextureInfo("diffuse", mFramebuffer->getColorAttachment(2)) }
+			// { "u_shadow", TextureInfo("diffuse", mFramebuffer->getColorAttachment(3)) },
+		};
 	}
 
 	void clear() {
+		mFramebuffer->bind();
 		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	}
 
 	template<typename TScene, typename TCamera>
-	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
+	void geometryPass(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
+		GL_CHECK(glEnable(GL_DEPTH_TEST));
+		mFramebuffer->bind();
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
@@ -79,7 +96,24 @@ public:
 			geometry.bind();
 			geometry.draw();
 		}
+		mFramebuffer->unbind();
 	}
-protected:
 
+	void compositingPass() {
+		GL_CHECK(glDisable(GL_DEPTH_TEST));
+		mQuadRenderer.render(*mCompositingShader, mCompositingParameters);
+	}
+
+	void postprocessingPass() {
+
+	}
+
+protected:
+	int mWidth = 100;
+	int mHeight = 100;
+	std::unique_ptr<Framebuffer> mFramebuffer;
+	MaterialParameterValues mCompositingParameters;
+	QuadRenderer mQuadRenderer;
+	std::shared_ptr<OGLShaderProgram> mCompositingShader;
+	OGLMaterialFactory &mMaterialFactory;
 };

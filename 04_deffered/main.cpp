@@ -44,12 +44,8 @@ int main() {
 		MouseTracking mouseTracking;
 		Config config;
 		Camera camera(window.aspectRatio());
-		camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
+		camera.setPosition(glm::vec3(0.0f, -10.0f, -23.0f));
 		camera.lookAt(glm::vec3());
-		window.onResize([&camera, &window](int width, int height) {
-				camera.setAspectRatio(window.aspectRatio());
-			});
-
 		window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
 				mouseTracking.update(aWin);
 				if (glfwGetMouseButton(aWin, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -63,15 +59,15 @@ int main() {
 						camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
 						camera.lookAt(glm::vec3());
 						break;
-					case GLFW_KEY_1:
-						config.currentSceneIdx = 0;
-						break;
-					case GLFW_KEY_2:
-						config.currentSceneIdx = 1;
-						break;
-					case GLFW_KEY_3:
-						config.currentSceneIdx = 2;
-						break;
+					// case GLFW_KEY_1:
+					// 	config.currentSceneIdx = 0;
+					// 	break;
+					// case GLFW_KEY_2:
+					// 	config.currentSceneIdx = 1;
+					// 	break;
+					// case GLFW_KEY_3:
+					// 	config.currentSceneIdx = 2;
+					// 	break;
 					case GLFW_KEY_W:
 						toggle("Show wireframe", config.showWireframe);
 						break;
@@ -92,31 +88,23 @@ int main() {
 		OGLGeometryFactory geometryFactory;
 
 
-		std::array<SimpleScene, 3> scenes {
-			createCubeScene(materialFactory, geometryFactory),
-			createTexturedCubeScene(materialFactory, geometryFactory),
-			createMonkeyScene(materialFactory, geometryFactory),
+		std::array<SimpleScene, 1> scenes {
+			createCottageScene(materialFactory, geometryFactory),
 		};
 
-		Renderer renderer;
+		Renderer renderer(materialFactory);
+		window.onResize([&camera, &window, &renderer](int width, int height) {
+				camera.setAspectRatio(window.aspectRatio());
+				renderer.initialize(width, height);
+			});
 
-		renderer.initialize();
+
+		renderer.initialize(640, 480);
 		window.runLoop([&] {
 			renderer.clear();
-			if (config.showSolid) {
-				GL_CHECK(glDisable(GL_POLYGON_OFFSET_LINE));
-				GL_CHECK(glPolygonOffset(0.0f, 0.0f));
-				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
-			}
-			if (config.showWireframe) {
-				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-				if (config.useZOffset) {
-					GL_CHECK(glEnable(GL_POLYGON_OFFSET_LINE));
-					GL_CHECK(glPolygonOffset(-1.0f, -1.0f));
-				}
-				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"wireframe"});
-			}
+			renderer.geometryPass(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
+			renderer.compositingPass();
+			renderer.postprocessingPass();
 		});
 	} catch (ShaderCompilationError &exc) {
 		std::cerr

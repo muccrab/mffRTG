@@ -54,13 +54,6 @@ generateQuadTex() {
 		createVertexArray(),
 		0
 	};
-	std::array<VertexTex, 4> quadVertices;
-	for (int i = 0; i < 4; ++i) {
-		auto coords = 2.0f *
-		quadVertices[i] = VertexTex(
-	}
-
-
 	GL_CHECK(glBindVertexArray(buffers.vao.get()));
 
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, buffers.vbo.get()));

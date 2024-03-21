@@ -29,7 +29,8 @@ using MaterialParam = std::variant<
 				glm::vec4,
 				glm::mat3,
 				glm::mat4,
-				TextureInfo>;
+				TextureInfo
+				>;
 using MaterialParameterValues = std::map<std::string, MaterialParam>;
 
 enum class RenderStyle {

@@ -8,6 +8,10 @@
 
 class OpenGLResource {
 public:
+	OpenGLResource()
+		: mId(0)
+	{}
+
 	OpenGLResource(
 		std::function<GLuint()> aCreateFunc,
 		std::function<void(GLuint)> aDeleteFunc)
@@ -18,7 +22,9 @@ public:
 	}
 
 	~OpenGLResource() {
-		mDeleteFunc(mId);
+		if (mDeleteFunc) {
+			mDeleteFunc(mId);
+		}
 	}
 
 	// Disable copy operations
@@ -28,15 +34,18 @@ public:
 	// Enable move operations
 	OpenGLResource(OpenGLResource&& other) noexcept
 		: mId(std::exchange(other.mId, 0))
-		, mCreateFunc(other.mCreateFunc)
-		, mDeleteFunc(other.mDeleteFunc)
+		, mCreateFunc(std::move(other.mCreateFunc))
+		, mDeleteFunc(std::move(other.mDeleteFunc))
 	{}
+
 	OpenGLResource& operator=(OpenGLResource&& other) noexcept {
 		if (this != &other) {
-			mDeleteFunc(mId);
+			if (mDeleteFunc) {
+				mDeleteFunc(mId);
+			}
 			mId = std::exchange(other.mId, 0);
-			mCreateFunc = other.mCreateFunc;
-			mDeleteFunc = other.mDeleteFunc;
+			mCreateFunc = std::move(other.mCreateFunc);
+			mDeleteFunc = std::move(other.mDeleteFunc);
 		}
 		return *this;
 	}
@@ -70,6 +79,30 @@ inline OpenGLResource createBuffer() {
 		},
 		[](GLuint id){
 			glDeleteBuffers(1, &id);
+		});
+}
+
+inline OpenGLResource createRenderBuffer() {
+	return OpenGLResource(
+		[]{
+			GLuint id = 0;
+			GL_CHECK(glGenRenderbuffers(1, &id));
+			return id;
+		},
+		[](GLuint id){
+			glDeleteRenderbuffers(1, &id);
+		});
+}
+
+inline OpenGLResource createFramebuffer() {
+	return OpenGLResource(
+		[]{
+			GLuint id = 0;
+			GL_CHECK(glGenFramebuffers(1, &id));
+			return id;
+		},
+		[](GLuint id){
+			glDeleteFramebuffers(1, &id);
 		});
 }
 
