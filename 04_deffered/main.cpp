@@ -44,7 +44,7 @@ int main() {
 		MouseTracking mouseTracking;
 		Config config;
 		Camera camera(window.aspectRatio());
-		camera.setPosition(glm::vec3(0.0f, -10.0f, -23.0f));
+		camera.setPosition(glm::vec3(0.0f, -10.0f, -50.0f));
 		camera.lookAt(glm::vec3());
 		window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
 				mouseTracking.update(aWin);
@@ -99,8 +99,10 @@ int main() {
 			});
 
 
-		renderer.initialize(640, 480);
+		renderer.initialize(window.size()[0], window.size()[1]);
 		window.runLoop([&] {
+			renderer.shadowMapPass();
+
 			renderer.clear();
 			renderer.geometryPass(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
 			renderer.compositingPass();

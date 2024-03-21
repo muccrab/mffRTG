@@ -39,6 +39,8 @@ public:
 	{
 		mCompositingShader = std::static_pointer_cast<OGLShaderProgram>(
 				mMaterialFactory.getShaderProgram("compositing"));
+		mShadowMapShader = std::static_pointer_cast<OGLShaderProgram>(
+			mMaterialFactory.getShaderProgram("shadowmap"));
 	}
 
 	void initialize(int aWidth, int aHeight) {
@@ -65,6 +67,7 @@ public:
 	void geometryPass(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		mFramebuffer->bind();
+		mFramebuffer->setDrawBuffers();
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
@@ -88,7 +91,7 @@ public:
 			const OGLGeometry &geometry = static_cast<const OGLGeometry&>(data.mGeometry);
 
 			fallbackParameters["u_modelMat"] = modelMat;
-			fallbackParameters["u_normalMat"] = modelMat;
+			fallbackParameters["u_normalMat"] = glm::mat3(modelMat);
 
 			shaderProgram.use();
 			shaderProgram.setMaterialParameters(params.mParameterValues, fallbackParameters);
@@ -108,6 +111,10 @@ public:
 
 	}
 
+	void shadowMapPass() {
+
+	}
+
 protected:
 	int mWidth = 100;
 	int mHeight = 100;
@@ -115,5 +122,6 @@ protected:
 	MaterialParameterValues mCompositingParameters;
 	QuadRenderer mQuadRenderer;
 	std::shared_ptr<OGLShaderProgram> mCompositingShader;
+	std::shared_ptr<OGLShaderProgram> mShadowMapShader;
 	OGLMaterialFactory &mMaterialFactory;
 };
