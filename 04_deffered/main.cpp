@@ -11,6 +11,7 @@
 #include "window.hpp"
 #include "shader.hpp"
 
+
 #include "scene_definition.hpp"
 #include "renderer.hpp"
 
@@ -46,6 +47,12 @@ int main() {
 		Camera camera(window.aspectRatio());
 		camera.setPosition(glm::vec3(0.0f, -10.0f, -50.0f));
 		camera.lookAt(glm::vec3());
+		SpotLight light;
+		light.setPosition(glm::vec3(15.0f, -30.0f, 10.0f));
+		light.lookAt(glm::vec3());
+
+
+
 		window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
 				mouseTracking.update(aWin);
 				if (glfwGetMouseButton(aWin, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -56,26 +63,8 @@ int main() {
 				if (action == GLFW_PRESS) {
 					switch (key) {
 					case GLFW_KEY_ENTER:
-						camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
+						camera.setPosition(glm::vec3(0.0f, -10.0f, -50.0f));
 						camera.lookAt(glm::vec3());
-						break;
-					// case GLFW_KEY_1:
-					// 	config.currentSceneIdx = 0;
-					// 	break;
-					// case GLFW_KEY_2:
-					// 	config.currentSceneIdx = 1;
-					// 	break;
-					// case GLFW_KEY_3:
-					// 	config.currentSceneIdx = 2;
-					// 	break;
-					case GLFW_KEY_W:
-						toggle("Show wireframe", config.showWireframe);
-						break;
-					case GLFW_KEY_S:
-						toggle("Show solid", config.showSolid);
-						break;
-					case GLFW_KEY_Z:
-						toggle("Use z offset", config.useZOffset);
 						break;
 					}
 				}
@@ -101,12 +90,12 @@ int main() {
 
 		renderer.initialize(window.size()[0], window.size()[1]);
 		window.runLoop([&] {
-			renderer.shadowMapPass();
+			// renderer.shadowMapPass(scenes[config.currentSceneIdx], light);
+			// renderer.shadowMapPass(scenes[config.currentSceneIdx], camera);
 
 			renderer.clear();
 			renderer.geometryPass(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
-			renderer.compositingPass();
-			renderer.postprocessingPass();
+			renderer.compositingPass(light);
 		});
 	} catch (ShaderCompilationError &exc) {
 		std::cerr

@@ -7,7 +7,7 @@
 
 class Camera : public SceneObject {
 public:
-	Camera(float aspectRatio, float fov=45.0f, float nearPlane=0.01f, float farPlane=1000.0f)
+	Camera(float aspectRatio, float fov=45.0f, float nearPlane=0.01f, float farPlane=100.0f)
 		: SceneObject(), fov(fov), aspectRatio(aspectRatio), nearPlane(nearPlane), farPlane(farPlane) {}
 
 	void setAspectRatio(float aAspectRatio) {
