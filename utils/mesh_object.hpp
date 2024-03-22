@@ -6,12 +6,6 @@
 
 namespace fs = std::filesystem;
 
-struct RenderInfo {
-	MaterialParameters materialParams;
-	std::shared_ptr<AShaderProgram> shaderProgram;
-	std::shared_ptr<AGeometry> geometry;
-};
-
 class MeshObject: public SceneObject {
 public:
 	MeshObject() {};

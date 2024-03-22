@@ -12,6 +12,8 @@ struct IndexedBuffer {
 	GLenum mode = GL_TRIANGLES;
 };
 
+IndexedBuffer
+generateAxisGizmo();
 
 IndexedBuffer
 generateQuadTex();

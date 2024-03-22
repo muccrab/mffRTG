@@ -19,6 +19,12 @@ struct RenderOptions {
 	std::string mode;
 };
 
+struct RenderInfo {
+	MaterialParameters materialParams;
+	std::shared_ptr<AShaderProgram> shaderProgram;
+	std::shared_ptr<AGeometry> geometry;
+};
+
 class SceneObject {
 public:
 	SceneObject()
@@ -87,4 +93,24 @@ protected:
 	glm::vec3 scale;
 
 	std::string mName;
+};
+
+
+class AxisGizmo: public SceneObject {
+public:
+	std::optional<RenderData> getRenderData(const RenderOptions &aOptions) const {
+		return std::optional<RenderData>(RenderData{
+				getModelMatrix(),
+				mRenderInfo.materialParams,
+				*(mRenderInfo.shaderProgram),
+				*(mRenderInfo.geometry)
+			});
+	}
+
+	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
+		mRenderInfo.shaderProgram = aMaterialFactory.getShaderProgram("linegizmo");
+		mRenderInfo.geometry = aGeometryFactory.getAxisGizmo();
+	};
+
+	RenderInfo mRenderInfo;
 };

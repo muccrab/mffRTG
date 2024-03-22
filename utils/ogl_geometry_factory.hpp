@@ -29,6 +29,7 @@ public:
 
 class OGLGeometryFactory: public GeometryFactory {
 public:
+	std::shared_ptr<AGeometry> getAxisGizmo();
 	std::shared_ptr<AGeometry> getCube();
 	std::shared_ptr<AGeometry> getCubeOutline();
 	std::shared_ptr<AGeometry> getCubeNormTex();

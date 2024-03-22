@@ -39,6 +39,57 @@ glm::vec3 insertDimension(const glm::vec2& v, int dimension, float value) {
 	}
 }
 
+IndexedBuffer
+generateAxisGizmo() {
+	IndexedBuffer buffers {
+		createBuffer(),
+		createBuffer(),
+		createVertexArray(),
+		0
+	};
+	// Gizmo vertex data: positions and colors (R, G, B for X, Y, Z axes)
+	std::vector<VertexColor> gizmoVertices = {
+		// Positions    // Colors
+		{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // X-axis (red)
+		{{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Y-axis (green)
+		{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // Z-axis (blue)
+		{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}}
+	};
+	std::vector<unsigned int> indices = {
+		0, 1,
+		2, 3,
+		4, 5
+	};
+	GL_CHECK(glBindVertexArray(buffers.vao.get()));
+
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, buffers.vbo.get()));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(VertexColor) * gizmoVertices.size(), gizmoVertices.data(), GL_STATIC_DRAW));
+
+	GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.ebo.get()));
+	GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW));
+
+	// Position attribute
+	GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(indices), (void*)0));
+	GL_CHECK(glEnableVertexAttribArray(0));
+
+	// Texture coordinate attribute
+	GL_CHECK(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(indices), (void*)(sizeof(glm::vec3))));
+	GL_CHECK(glEnableVertexAttribArray(1));
+
+	// Unbind VAO
+	GL_CHECK(glBindVertexArray(0));
+
+	buffers.indexCount = unsigned(indices.size());
+	buffers.mode = GL_LINES;
+	return buffers;
+
+}
+
+
+
+
 static const std::array<VertexTex, 4> quadVertices = {
 	VertexTex(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
 	VertexTex(glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)),

@@ -13,6 +13,12 @@ struct VertexNorm {
 	glm::vec3 normal;
 };
 
+struct VertexColor {
+	glm::vec3 position;
+	glm::vec3 color;
+};
+
+
 struct VertexTex {
 	glm::vec3 position;
 	glm::vec2 texCoords;

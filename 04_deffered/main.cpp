@@ -45,10 +45,10 @@ int main() {
 		MouseTracking mouseTracking;
 		Config config;
 		Camera camera(window.aspectRatio());
-		camera.setPosition(glm::vec3(0.0f, -10.0f, -50.0f));
+		camera.setPosition(glm::vec3(0.0f, 10.0f, 50.0f));
 		camera.lookAt(glm::vec3());
 		SpotLight light;
-		light.setPosition(glm::vec3(15.0f, -30.0f, 10.0f));
+		light.setPosition(glm::vec3(15.0f, 30.0f, 10.0f));
 		light.lookAt(glm::vec3());
 
 
