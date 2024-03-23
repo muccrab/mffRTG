@@ -29,14 +29,15 @@ protected:
 inline std::vector<CADescription> getColorNormalPositionAttachments() {
 	return {
 		{ GL_RGBA, GL_FLOAT, GL_RGBA },
-		{ GL_RGBA, GL_FLOAT, GL_RGBA },
-		{ GL_RGBA, GL_FLOAT, GL_RGBA },
+		// To store values outside the range [0,1] we need different internal format then normal GL_RGBA
+		{ GL_RGBA, GL_FLOAT, GL_RGBA32F },
+		{ GL_RGBA, GL_FLOAT, GL_RGBA32F },
 	};
 }
 
 inline std::vector<CADescription> getSingleColorAttachment() {
 	return {
-		{ GL_RGBA, GL_FLOAT, GL_RGBA },
+		{ GL_RGBA, GL_FLOAT, GL_RGBA32F },
 	};
 }
 
@@ -57,7 +58,6 @@ public:
 	void initialize(int aWidth, int aHeight) {
 		mWidth = aWidth;
 		mHeight = aHeight;
-		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
 		mFramebuffer = std::make_unique<Framebuffer>(aWidth, aHeight, getColorNormalPositionAttachments());
@@ -74,6 +74,7 @@ public:
 
 	void clear() {
 		mFramebuffer->bind();
+		GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	}
 
@@ -120,7 +121,10 @@ public:
 	template<typename TLight>
 	void compositingPass(const TLight &aLight) {
 		GL_CHECK(glDisable(GL_DEPTH_TEST));
+		GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 		mCompositingParameters["u_lightPos"] = aLight.getPosition();
+		mCompositingParameters["u_lightMat"] = aLight.getViewMatrix();
+		mCompositingParameters["u_lightProjMat"] = aLight.getProjectionMatrix();
 		mQuadRenderer.render(*mCompositingShader, mCompositingParameters);
 	}
 
@@ -129,6 +133,7 @@ public:
 		GL_CHECK(glEnable(GL_DEPTH_TEST));
 		mShadowmapFramebuffer->bind();
 		GL_CHECK(glViewport(0, 0, 600, 600));
+		GL_CHECK(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		mShadowmapFramebuffer->setDrawBuffers();
 		auto projection = aLight.getProjectionMatrix();

@@ -48,7 +48,7 @@ int main() {
 		camera.setPosition(glm::vec3(0.0f, 10.0f, 50.0f));
 		camera.lookAt(glm::vec3());
 		SpotLight light;
-		light.setPosition(glm::vec3(15.0f, 30.0f, 10.0f));
+		light.setPosition(glm::vec3(25.0f, 40.0f, 30.0f));
 		light.lookAt(glm::vec3());
 
 
@@ -90,7 +90,7 @@ int main() {
 
 		renderer.initialize(window.size()[0], window.size()[1]);
 		window.runLoop([&] {
-			// renderer.shadowMapPass(scenes[config.currentSceneIdx], light);
+			renderer.shadowMapPass(scenes[config.currentSceneIdx], light);
 			// renderer.shadowMapPass(scenes[config.currentSceneIdx], camera);
 
 			renderer.clear();

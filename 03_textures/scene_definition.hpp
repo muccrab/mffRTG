@@ -14,28 +14,32 @@
 
 inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
 	SimpleScene scene;
-	auto cube = std::make_shared<Cube>();
+	// auto cube = std::make_shared<Cube>();
+        //
+	// cube->setName("CUBE");
+	// cube->addMaterial(
+	// 	"solid",
+	// 	MaterialParameters(
+	// 		"normal_to_color",
+	// 		RenderStyle::Solid,
+	// 		{}
+	// 		)
+	// 	);
+	// cube->addMaterial(
+	// 	"wireframe",
+	// 	MaterialParameters(
+	// 		"solid_color",
+	// 		RenderStyle::Wireframe,
+	// 		{}
+	// 		)
+	// 	);
+	// cube->prepareRenderData(aMaterialFactory, aGeometryFactory);
+	auto gizmo = std::make_shared<AxisGizmo>();
+	gizmo->prepareRenderData(aMaterialFactory, aGeometryFactory);
+	scene.addObject(gizmo);
 
-	cube->setName("CUBE");
-	cube->addMaterial(
-		"solid",
-		MaterialParameters(
-			"normal_to_color",
-			RenderStyle::Solid,
-			{}
-			)
-		);
-	cube->addMaterial(
-		"wireframe",
-		MaterialParameters(
-			"solid_color",
-			RenderStyle::Wireframe,
-			{}
-			)
-		);
-	cube->prepareRenderData(aMaterialFactory, aGeometryFactory);
 
-	scene.addObject(cube);
+	// scene.addObject(cube);
 	return scene;
 }
 

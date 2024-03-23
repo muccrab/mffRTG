@@ -1,17 +1,19 @@
 #version 430 core
 
-/* uniform vec3 u_viewPos; */
-
 out vec4 out_fragColor;
 
-/* in vec3 position; */
-
-void main() {
+float linearizeDepth(float depth) {
+	// TODO - use setting for your projection matrix
 	float near = 0.01; // Camera's near plane
 	float far = 100.0;  // Camera's far plane
-	
+
+	return (2.0 * near) / (far + near - depth * (far - near));
+}
+
+void main() {
 	float z = gl_FragCoord.z; // Non-linear depth value
-	float linearDepth = (2.0 * near) / (far + near - z * (far - near));
-	out_fragColor = vec4(linearDepth, 0.0, 0.0, 1.0);
+	float linearDepth = linearizeDepth(z);
+	// store the fragment depth and also its linearized value - useful for debugging
+	out_fragColor = vec4(z, linearDepth, 0.0, 1.0);
 }
 
