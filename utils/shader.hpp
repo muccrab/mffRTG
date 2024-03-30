@@ -106,10 +106,13 @@ inline auto compileShader(GLenum aShaderType, const std::string& aSource) {
 	return shader;
 }
 
-inline auto createShaderProgram(const OpenGLResource& vertexShader, OpenGLResource& fragmentShader) {
+using CompiledShaderStages = std::vector<const OpenGLResource *>;
+
+inline auto createShaderProgram(const CompiledShaderStages &aShaderStages) {
 	auto program = createShaderProgram();
-	GL_CHECK(glAttachShader(program.get(), vertexShader.get()));
-	GL_CHECK(glAttachShader(program.get(), fragmentShader.get()));
+	for (auto &shader : aShaderStages) {
+		GL_CHECK(glAttachShader(program.get(), shader->get()));
+	}
 	GL_CHECK(glLinkProgram(program.get()));
 
 	GLint isLinked = 0;
@@ -137,6 +140,10 @@ inline auto createShaderProgram(const OpenGLResource& vertexShader, OpenGLResour
 		throw OpenGLError("Shader program validation failed:" + std::string(infoLog.begin(), infoLog.end()));
 	}
 	return program;
+}
+
+inline auto createShaderProgram(const OpenGLResource& vertexShader, OpenGLResource& fragmentShader) {
+	return createShaderProgram(CompiledShaderStages{ &vertexShader, &fragmentShader });
 }
 
 inline auto createShaderProgram(const std::string& vertexShader, const std::string& fragmentShader) {

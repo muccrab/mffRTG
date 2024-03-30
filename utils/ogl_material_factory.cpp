@@ -15,6 +15,7 @@ inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 	std::map<std::string, std::regex> patterns = {
 		{ "vertex", std::regex("(.*)\\.vertex\\.glsl") },
 		{ "fragment", std::regex("(.*)\\.fragment\\.glsl") },
+		{ "geometry", std::regex("(.*)\\.geometry\\.glsl") },
 		{ "program", std::regex("(.*)\\.program") },
 	};
 	ShaderProgramFiles shaderFiles;
@@ -85,45 +86,64 @@ std::string loadShaderSource(const fs::path& filePath) {
 	return fileContent;
 }
 
+const static std::map<std::string, GLenum> cShaderTypeEnums = {
+	{ "vertex", GL_VERTEX_SHADER },
+	{ "fragment", GL_FRAGMENT_SHADER },
+	{ "geometry", GL_GEOMETRY_SHADER },
+};
+
 void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 	aShaderDir = fs::canonical(aShaderDir);
 	ShaderProgramFiles shaderFiles = listShaderFiles(aShaderDir);
 
-	auto &vertexShaderFiles = shaderFiles["vertex"];
-	std::map<std::string, OpenGLResource> vertexShadersCompiled;
-	for (auto &shaderFile : vertexShaderFiles) {
-		std::cout << "Compiling vertex shader: " << shaderFile.second << "\n";
-		auto content = loadShaderSource(shaderFile.second);
-		auto compiledShader = compileShader(GL_VERTEX_SHADER, content);
-		vertexShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
+	using CompiledShaderMap = std::map<std::string, OpenGLResource>;
+	std::map<std::string, CompiledShaderMap> compiledShaders;
+	for (auto & [shaderType, enumValue] : cShaderTypeEnums) {
+		auto files = shaderFiles[shaderType];
+		std::map<std::string, OpenGLResource> shaders;
+		for (auto &shaderFile : files) {
+			std::cout << "Compiling " << shaderType << " shader: " << shaderFile.second << "\n";
+			auto content = loadShaderSource(shaderFile.second);
+			auto compiledShader = compileShader(enumValue, content);
+			shaders.emplace(shaderFile.first, std::move(compiledShader));
+		}
+		compiledShaders[shaderType] = std::move(shaders);
 	}
-	auto &fragmentShaderFiles = shaderFiles["fragment"];
-	std::map<std::string, OpenGLResource> fragmentShadersCompiled;
-	for (auto &shaderFile : fragmentShaderFiles) {
-		std::cout << "Compiling fragment shader: " << shaderFile.second << "\n";
-		auto content = loadShaderSource(shaderFile.second);
-		auto compiledShader = compileShader(GL_FRAGMENT_SHADER, content);
-		fragmentShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
-	}
+
+	// auto &vertexShaderFiles = shaderFiles["vertex"];
+	// std::map<std::string, OpenGLResource> vertexShadersCompiled;
+	// for (auto &shaderFile : vertexShaderFiles) {
+	// 	std::cout << "Compiling vertex shader: " << shaderFile.second << "\n";
+	// 	auto content = loadShaderSource(shaderFile.second);
+	// 	auto compiledShader = compileShader(GL_VERTEX_SHADER, content);
+	// 	vertexShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
+	// }
+	// auto &fragmentShaderFiles = shaderFiles["fragment"];
+	// std::map<std::string, OpenGLResource> fragmentShadersCompiled;
+	// for (auto &shaderFile : fragmentShaderFiles) {
+	// 	std::cout << "Compiling fragment shader: " << shaderFile.second << "\n";
+	// 	auto content = loadShaderSource(shaderFile.second);
+	// 	auto compiledShader = compileShader(GL_FRAGMENT_SHADER, content);
+	// 	fragmentShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
+	// }
 
 	auto &programFiles = shaderFiles["program"];
 	for (auto &programFile : programFiles) {
 		std::cout << "Creating shader program: " << programFile.first << "\n";
-		auto shaders = parseProgramFile(programFile.second);
+		auto shaderNames = parseProgramFile(programFile.second);
 
-		auto vit = vertexShadersCompiled.find(shaders["vertex"]);
-		auto fit = fragmentShadersCompiled.find(shaders["fragment"]);
-		if (vit == vertexShadersCompiled.end()) {
-			throw OpenGLError(
-					"Program " + programFile.first + " cannot be linked. Vertex shader " +
-					shaders["vertex"] + " was not compiled.");
+		CompiledShaderStages shaderStages;
+		for (auto &[shaderType, shaderName] : shaderNames) {
+			auto &compShaders = compiledShaders[shaderType];
+			auto it = compShaders.find(shaderName);
+			if (it == compShaders.end()) {
+				throw OpenGLError(
+						"Program " + programFile.first + " cannot be linked. Shader ("
+						+ shaderType + ") : " + shaderName + " was not compiled.");
+			}
+			shaderStages.push_back(&(it->second));
 		}
-		if (fit == fragmentShadersCompiled.end()) {
-			throw OpenGLError(
-					"Program " + programFile.first + " cannot be linked. Fragment shader " +
-					shaders["fragment"] + " was not compiled.");
-		}
-		auto program = createShaderProgram(vit->second, fit->second);
+		auto program = createShaderProgram(shaderStages);
 		auto uniforms = listShaderUniforms(program);
 		for (auto info : uniforms) {
 			std::cout
