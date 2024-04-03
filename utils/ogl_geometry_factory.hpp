@@ -23,7 +23,11 @@ public:
 	}
 
 	void draw() const {
-  		GL_CHECK(glDrawElements(buffer.mode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+		draw(buffer.mode);
+	}
+
+	void draw(GLenum aMode) const {
+  		GL_CHECK(glDrawElements(aMode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
 	}
 };
 
