@@ -27,7 +27,8 @@ in patch OutputPatch oPatch;
 
 out vec3 WorldPos_FS_in;
 out vec2 TexCoord_FS_in;
-out vec3 normal;
+out vec3 f_normal;
+out vec3 f_position;
 
 vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2)
 {
@@ -43,7 +44,7 @@ void main()
 {
     // Interpolate the attributes of the output vertex using the barycentric coordinates
     TexCoord_FS_in = interpolate2D(oPatch.TexCoord[0], oPatch.TexCoord[1], oPatch.TexCoord[2]);
-    normal = interpolate3D(oPatch.Normal[0], oPatch.Normal[1], oPatch.Normal[2]);
+    f_normal = interpolate3D(oPatch.Normal[0], oPatch.Normal[1], oPatch.Normal[2]);
 
     float u = gl_TessCoord.x;
     float v = gl_TessCoord.y;
@@ -68,5 +69,6 @@ void main()
                     oPatch.WorldPos_B111 * 6.0 * w * u * v;
 
     gl_Position = u_projMat * u_viewMat * vec4(WorldPos_FS_in, 1.0);
+    f_position = WorldPos_FS_in;
 }
 

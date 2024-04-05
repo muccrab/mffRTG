@@ -93,9 +93,9 @@ int main() {
 
 
 		std::array<SimpleScene, 3> scenes {
-			createMonkeyScene(materialFactory, geometryFactory),
 			createCubeScene(materialFactory, geometryFactory),
 			createInstancedCubesScene(materialFactory, geometryFactory),
+			createMonkeyScene(materialFactory, geometryFactory),
 		};
 
 		Renderer renderer(materialFactory);

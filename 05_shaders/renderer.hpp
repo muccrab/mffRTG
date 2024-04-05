@@ -46,6 +46,8 @@ public:
 		fallbackParameters["u_viewMat"] = view;
 		fallbackParameters["u_solidColor"] = glm::vec4(0,0,0,1);
 		fallbackParameters["u_viewPos"] = aCamera.getPosition();
+
+		GL_CHECK(glPatchParameteri(GL_PATCH_VERTICES, 3));
 		for (const auto &data: renderData) {
 			const glm::mat4 &modelMat = data.modelMat;
 			const MaterialParameters &params = data.mMaterialParams;
@@ -58,7 +60,11 @@ public:
 			shaderProgram.use();
 			shaderProgram.setMaterialParameters(params.mParameterValues, fallbackParameters);
 			geometry.bind();
-			geometry.draw();
+			if (params.mIsTesselation) {
+				geometry.draw(GL_PATCHES);
+			} else {
+				geometry.draw();
+			}
 		}
 	}
 

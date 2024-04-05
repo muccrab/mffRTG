@@ -6,14 +6,16 @@ const uint BUMP = 1 << 2;
 const uint PARALLAX = 1 << 3;
 const uint AMBIENT_OCC = 1 << 4;
 const uint SHADOW = 1 << 5;
+const uint DEBUG = 1 << 7;
 
 
 uniform uint configuration = DIFFUSE;
+
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
 const float lightPower = 1.0;
 const float ambientMultiplier = 0.3;
 //uniform vec3 ambientColor = vec3(0.0, 0.0, 0.0);
-uniform vec3 diffuseColor = vec3(0.6, 0.5, 0.0);
+// uniform vec3 diffuseColor = vec3(0.6, 0.5, 0.0);
 //const vec3 specColor = vec3(1.0, 1.0, 1.0);
 //uniform vec3 specColor = vec3(0.0, 0.0, 0.0);
 const float shininess = 100.0;
@@ -31,9 +33,10 @@ uniform mat4 u_viewMat;
 uniform mat4 u_projMat;
 uniform mat3 u_normalMat;
 
-const vec3 u_lightPosition = vec3(15.0, 15.0, -15.0);
+const vec3 u_lightPosition = vec3(15.0, 20.0, -10.0);
 //uniform vec3 u_lightPosition = vec3(10.0, 5.0, 5.0);
 uniform vec3 u_viewPos;
+
 uniform float u_numberOfParallaxLayers = 10;
 
 in vec3 f_normal;
@@ -177,8 +180,8 @@ vec2 parallax_map(mat3 TBN, vec3 V, vec2 texcoord)
 	float height = texture2D(u_displacementTexture, texcoord).r;
 	float v = height * scaleBias.x - scaleBias.y;
 	vec3 eye = normalize(TBN * V);
-	vec2 newCoords = texcoord - (eye.xy/eye.z * v);
-	return newCoords;
+	vec2 offset = - (eye.xy/eye.z * v);
+	return offset;
 }
 
 vec2 steep_parallax_map(mat3 TBN, vec3 V, vec2 texCoords, float numLayers)
@@ -209,7 +212,7 @@ vec2 steep_parallax_map(mat3 TBN, vec3 V, vec2 texCoords, float numLayers)
 	    // get depth of next layer
 	    currentLayerDepth += layerDepth;
 	}
-	return currentTexCoords;
+	return currentTexCoords - texCoords;
 }
 
 
@@ -223,14 +226,13 @@ void main() {
 
 	mat3 TBN = cotangent_frame(updatedNormal, toCamera, updatedTexCoords);
 
-	// if (bool(configuration & PARALLAX)) {
-	// 	updatedTexCoords = steep_parallax_map(TBN, toCamera, updatedTexCoords, u_numberOfParallaxLayers);
-	// 	//updatedTexCoords = parallax_map(TBN, toCamera, updatedTexCoords);
-        //
-	// }
-        //
+	if (bool(configuration & PARALLAX)) {
+		vec2 offset = parallax_map(TBN, toCamera, updatedTexCoords);
+		// vec2 offset = steep_parallax_map(TBN, toCamera, updatedTexCoords, u_numberOfParallaxLayers);
+		updatedTexCoords = updatedTexCoords + offset;
+	}
+
 	if (bool(configuration & BUMP)) {
-		//updatedNormal = perturb_normal(updatedNormal, -toCamera, updatedTexCoords);
 		updatedNormal = perturb_normal(TBN, updatedTexCoords);
 	}
 
@@ -242,7 +244,7 @@ void main() {
 	if (bool(configuration & AMBIENT_OCC)) {
 		ambient = ambientMultiplier * texture(u_ambientOccTexture, updatedTexCoords).r * diffuseColor;
 	}
-	if (configuration != 73) {
+	if (configuration != DEBUG) {
 		out_color = vec4(phong(
 					ambient,
 					diffuseColor,
@@ -259,12 +261,7 @@ void main() {
 			out_color = out_color * texture(u_ambientOccTexture, updatedTexCoords).r;
 		}
 	} else {
-		updatedNormal = perturb_normal(TBN, updatedTexCoords);
-    		vec3 map = (updatedNormal + 128./127.) * 127./255;
-		// out_color = vec4(toCamera, 1.0);
-		// out_color = vec4(texture2D( u_normalTexture, updatedTexCoords ).xyz, 1.0);
-		out_color = vec4(updatedNormal, 1.0);
-		// out_color = vec4(map, 1.0);
+		out_color = vec4(texture2D( u_normalTexture, updatedTexCoords ).xyz, 1.0);
 	}
 }
 

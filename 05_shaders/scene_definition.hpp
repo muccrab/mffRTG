@@ -20,7 +20,7 @@ constexpr unsigned int BUMP = 1 << 2;
 constexpr unsigned int PARALLAX = 1 << 3;
 constexpr unsigned int AMBIENT_OCC = 1 << 4;
 constexpr unsigned int SHADOW = 1 << 5;
-
+constexpr unsigned int DEBUG = 1 << 7;
 
 
 inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
@@ -36,8 +36,8 @@ inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFa
 				"material",
 				RenderStyle::Solid,
 				{
-					// { "configuration", static_cast<unsigned int>(DIFFUSE | SPECULAR) },
-					{ "configuration", static_cast<unsigned int>(73) },
+					{ "configuration", static_cast<unsigned int>(DIFFUSE) },
+					// { "configuration", static_cast<unsigned int>(DEBUG) },
 					{ "u_diffuseTexture", TextureInfo("brick_wall/Brick_Wall_012_COLOR.jpg") },
 					{ "u_specularTexture", TextureInfo("brick_wall/Brick_Wall_012_ROUGH.jpg") },
 					{ "u_normalTexture", TextureInfo("brick_wall/Brick_Wall_012_NORM.jpg") },
@@ -69,7 +69,6 @@ inline SimpleScene createCubeScene(MaterialFactory &aMaterialFactory, GeometryFa
 				RenderStyle::Solid,
 				{
 					{ "configuration", static_cast<unsigned int>(DIFFUSE | SPECULAR | BUMP) },
-					// { "configuration", static_cast<unsigned int>(73) },
 					{ "u_diffuseTexture", TextureInfo("brick_wall/Brick_Wall_012_COLOR.jpg") },
 					{ "u_specularTexture", TextureInfo("brick_wall/Brick_Wall_012_ROUGH.jpg") },
 					{ "u_normalTexture", TextureInfo("brick_wall/Brick_Wall_012_NORM.jpg") },
@@ -134,47 +133,72 @@ inline SimpleScene createInstancedCubesScene(MaterialFactory &aMaterialFactory, 
 
 inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
 	SimpleScene scene;
-	auto mesh = std::make_shared<LoadedMeshObject>("./geometry/monkey.obj");
-	// auto mesh = std::make_shared<LoadedMeshObject>("./geometry/box.obj");
+	{
+		auto mesh = std::make_shared<LoadedMeshObject>("./geometry/monkey.obj");
+		mesh->setScale(glm::vec3(0.5));
+		mesh->setPosition(glm::vec3(-0.7, 0.0f, 0.0f));
+		mesh->setRotation(glm::vec3(0.0f, glm::radians(180.0f), 0.0f));
+		mesh->setName("MONKEY1");
+		mesh->addMaterial(
+				"solid",
+				MaterialParameters(
+					"pn_triangles",
+					RenderStyle::Solid,
+					{
+						{"u_inner", 1 },
+						{"u_outer", 1 },
+						{"u_solidColor", glm::vec4(0,0.5,0.5,1)}
+					},
+					true)
+				);
+		mesh->addMaterial(
+				"wireframe",
+				MaterialParameters(
+					"pn_triangles_solid",
+					RenderStyle::Wireframe,
+					{
+						{"u_inner", 1 },
+						{"u_outer", 1 },
+					},
+					true)
+				);
+		mesh->prepareRenderData(aMaterialFactory, aGeometryFactory);
 
-	mesh->setScale(glm::vec3(0.5));
-	mesh->setName("MONKEY");
-	mesh->addMaterial(
-		"solid",
-		MaterialParameters(
-			"pn_triangles",
-			RenderStyle::Solid,
-			{
-				{"u_solidColor", glm::vec4(0,0.5,0.5,1)}
-			})
-		);
-	// mesh->addMaterial(
-	// 	"solid",
-	// 	MaterialParameters(
-	// 		"phong",
-	// 		RenderStyle::Solid,
-	// 		{
-	// 			{ "light.ambient", glm::vec3(0.3, 0.3, 0.3) },
-	// 			{ "light.diffuse", glm::vec3(0.6, 0.6, 0.6) },
-	// 			{ "light.position", glm::vec3(3.0, 5.0, 6.0) },
-	// 			{ "light.specular", glm::vec3(1.0, 1.0, 1.0) },
-	// 			{ "material.ambient", glm::vec3(0.1, 0.1, 0.1) },
-	// 			{ "material.diffuse", glm::vec3(1.0, 0.5, 0.31) },
-	// 			{ "material.shininess", 32.0f },
-	// 			{ "material.specular", glm::vec3(0.5, 0.5, 0.5) },
-	// 		}
-	// 		)
-	// 	);
-	mesh->addMaterial(
-		"wireframe",
-		MaterialParameters(
-			"solid_color",
-			RenderStyle::Wireframe,
-			{}
-			)
-		);
-	mesh->prepareRenderData(aMaterialFactory, aGeometryFactory);
-
-	scene.addObject(mesh);
+		scene.addObject(mesh);
+	}
+	{
+		int innerFactor = 3;
+		int outerFactor = 3;
+		auto mesh = std::make_shared<LoadedMeshObject>("./geometry/monkey.obj");
+		mesh->setScale(glm::vec3(0.5));
+		mesh->setPosition(glm::vec3(0.7, 0.0f, 0.0f));
+		mesh->setRotation(glm::vec3(0.0f, glm::radians(180.0f), 0.0f));
+		mesh->setName("MONKEY2");
+		mesh->addMaterial(
+				"solid",
+				MaterialParameters(
+					"pn_triangles",
+					RenderStyle::Solid,
+					{
+						{"u_inner", innerFactor },
+						{"u_outer", outerFactor },
+						{"u_solidColor", glm::vec4(0,0.5,0.5,1)}
+					},
+					true)
+				);
+		mesh->addMaterial(
+				"wireframe",
+				MaterialParameters(
+					"pn_triangles_solid",
+					RenderStyle::Wireframe,
+					{
+						{"u_inner", innerFactor },
+						{"u_outer", outerFactor },
+					},
+					true)
+				);
+		mesh->prepareRenderData(aMaterialFactory, aGeometryFactory);
+		scene.addObject(mesh);
+	}
 	return scene;
 }

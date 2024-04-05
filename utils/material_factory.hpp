@@ -44,16 +44,19 @@ class MaterialParameters {
 public:
 	MaterialParameters()
        		: mRenderStyle(RenderStyle::Solid)
+		, mIsTesselation(false)
 	{}
-	MaterialParameters(const std::string &aMaterialName, RenderStyle aRenderStyle, const MaterialParameterValues &aParameterValues)
+	MaterialParameters(const std::string &aMaterialName, RenderStyle aRenderStyle, const MaterialParameterValues &aParameterValues, bool aIsTesselation = false)
 		: mMaterialName(aMaterialName)
 		, mRenderStyle(aRenderStyle)
 		, mParameterValues(aParameterValues)
+		, mIsTesselation(aIsTesselation)
 	{}
 
 	std::string mMaterialName;
 	RenderStyle mRenderStyle;
 	MaterialParameterValues mParameterValues;
+	bool mIsTesselation;
 };
 
 class AShaderProgram {

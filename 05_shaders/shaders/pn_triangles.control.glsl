@@ -3,7 +3,7 @@
 // define the number of CPs in the output patch
 layout (vertices = 1) out;
 
-uniform int uOuter = 2, uInner = 2;
+uniform int u_outer = 2, u_inner = 2;
 
 // attributes of the input CPs
 in vec3 WorldPos_CS_in[];
@@ -89,9 +89,9 @@ void main()
     CalcPositions();
 
     // Calculate the tessellation levels
-    gl_TessLevelOuter[0] = uOuter;
-    gl_TessLevelOuter[1] = uOuter;
-    gl_TessLevelOuter[2] = uOuter;
-    gl_TessLevelInner[0] = uInner;
+    gl_TessLevelOuter[0] = u_outer;
+    gl_TessLevelOuter[1] = u_outer;
+    gl_TessLevelOuter[2] = u_outer;
+    gl_TessLevelInner[0] = u_inner;
 }
 

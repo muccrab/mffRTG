@@ -20,7 +20,7 @@ out vec3 f_color;
 void main(void)
 {
 	gl_Position = u_projMat * u_viewMat * u_modelMat * vec4(in_vert + in_offset, 1);
-	f_normal = u_normalMat * in_normal;
+	f_normal = normalize(u_normalMat * in_normal);
 	f_position = vec3(u_modelMat * vec4(in_vert + in_offset, 1.0));
 	f_texCoord = in_texCoord;
 	f_color = in_color;
