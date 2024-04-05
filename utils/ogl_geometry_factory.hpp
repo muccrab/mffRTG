@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <iostream>
 #include <filesystem>
 
 #include "geometry_factory.hpp"
@@ -27,7 +28,11 @@ public:
 	}
 
 	void draw(GLenum aMode) const {
-  		GL_CHECK(glDrawElements(aMode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+		if (buffer.instanceCount == 0) {
+			GL_CHECK(glDrawElements(aMode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0)));
+		} else {
+			GL_CHECK(glDrawElementsInstanced(aMode, buffer.indexCount, GL_UNSIGNED_INT, reinterpret_cast<void*>(0), buffer.instanceCount));
+		}
 	}
 };
 

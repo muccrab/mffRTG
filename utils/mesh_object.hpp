@@ -20,7 +20,6 @@ public:
 			return std::optional<RenderData>();
 		}
 
-
 		if (!it->second.shaderProgram || !it->second.geometry) {
 			return std::optional<RenderData>();
 		}
@@ -31,6 +30,9 @@ public:
 				*(it->second.geometry)
 			});
 	}
+
+	virtual std::shared_ptr<AGeometry> getGeometry(GeometryFactory &aGeometryFactory, RenderStyle aRenderStyle) = 0;
+
 protected:
 	void getTextures(MaterialParameterValues &aParams, MaterialFactory &aMaterialFactory) {
 		for (auto &value : aParams) {
@@ -52,11 +54,15 @@ public:
 	{
 	}
 
+	virtual std::shared_ptr<AGeometry> getGeometry(GeometryFactory &aGeometryFactory, RenderStyle aRenderStyle) {
+ 		return aGeometryFactory.loadMesh(mMeshPath, aRenderStyle);
+	}
+
 	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
 		for (auto &mode : mRenderInfos) {
 			mode.second.shaderProgram = aMaterialFactory.getShaderProgram(mode.second.materialParams.mMaterialName);
 			getTextures(mode.second.materialParams.mParameterValues, aMaterialFactory);
-			mode.second.geometry = aGeometryFactory.loadMesh(mMeshPath, mode.second.materialParams.mRenderStyle);
+			mode.second.geometry = getGeometry(aGeometryFactory, mode.second.materialParams.mRenderStyle);
 		}
 	}
 protected:

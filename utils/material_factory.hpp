@@ -23,6 +23,8 @@ struct TextureInfo {
 };
 
 using MaterialParam = std::variant<
+				int,
+				unsigned int,
 				float,
 				glm::vec2,
 				glm::vec3,

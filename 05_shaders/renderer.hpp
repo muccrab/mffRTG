@@ -57,7 +57,6 @@ public:
 
 			shaderProgram.use();
 			shaderProgram.setMaterialParameters(params.mParameterValues, fallbackParameters);
-
 			geometry.bind();
 			geometry.draw();
 		}
@@ -83,15 +82,13 @@ public:
 		fallbackParameters["u_viewPos"] = aCamera.getPosition();
 		for (const auto &data: renderData) {
 			const glm::mat4 &modelMat = data.modelMat;
-			const MaterialParameters &params = data.mMaterialParams;
-			const OGLShaderProgram &shaderProgram = static_cast<const OGLShaderProgram &>(data.mShaderProgram);
 			const OGLGeometry &geometry = static_cast<const OGLGeometry&>(data.mGeometry);
 
 			fallbackParameters["u_modelMat"] = modelMat;
 			fallbackParameters["u_normalMat"] = glm::mat3(modelMat);
 
 			mShowNormalsShader->use();
-			mShowNormalsShader->setMaterialParameters(params.mParameterValues, fallbackParameters);
+			mShowNormalsShader->setMaterialParameters(fallbackParameters, {});
 
 			geometry.bind();
 			geometry.draw(GL_POINTS);

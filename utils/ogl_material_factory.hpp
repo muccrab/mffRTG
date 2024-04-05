@@ -34,7 +34,11 @@ inline int setUniform(const UniformInfo &aInfo, const MaterialParam &aParam, int
 	std::visit([&aInfo, &aNextTexturingUnit](auto&& arg) {
 		try {
 			using T = std::decay_t<decltype(arg)>;
-			if constexpr (std::is_same_v<T, float>) {
+			if constexpr (std::is_same_v<T, int>) {
+				GL_CHECK(glUniform1i(aInfo.location, arg));
+			} else 	if constexpr (std::is_same_v<T, unsigned int>) {
+				GL_CHECK(glUniform1ui(aInfo.location, arg));
+			} else if constexpr (std::is_same_v<T, float>) {
 				GL_CHECK(glUniform1f(aInfo.location, arg));
 			} else if constexpr (std::is_same_v<T, glm::vec2>) {
 				GL_CHECK(glUniform2fv(aInfo.location, 1, glm::value_ptr(arg)));

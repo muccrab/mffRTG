@@ -16,6 +16,8 @@ inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 		{ "vertex", std::regex("(.*)\\.vertex\\.glsl") },
 		{ "fragment", std::regex("(.*)\\.fragment\\.glsl") },
 		{ "geometry", std::regex("(.*)\\.geometry\\.glsl") },
+		{ "control", std::regex("(.*)\\.control\\.glsl") },
+		{ "evaluation", std::regex("(.*)\\.evaluation\\.glsl") },
 		{ "program", std::regex("(.*)\\.program") },
 	};
 	ShaderProgramFiles shaderFiles;
@@ -90,6 +92,8 @@ const static std::map<std::string, GLenum> cShaderTypeEnums = {
 	{ "vertex", GL_VERTEX_SHADER },
 	{ "fragment", GL_FRAGMENT_SHADER },
 	{ "geometry", GL_GEOMETRY_SHADER },
+	{ "control", GL_TESS_CONTROL_SHADER },
+	{ "evaluation", GL_TESS_EVALUATION_SHADER },
 };
 
 void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
