@@ -5,12 +5,12 @@ uniform mat4 u_viewMat;
 uniform mat4 u_projMat;
 uniform mat3 u_normalMat;
 
-in vec3 in_vert;
-in vec3 in_normal;
-in vec2 in_texCoord;
+layout(location = 0) in vec3 in_vert;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_texCoord;
 
-in vec3 in_offset;
-in vec3 in_color;
+layout(location = 3) in vec3 in_offset;
+layout(location = 4) in vec3 in_color;
 
 out vec3 f_normal;
 out vec3 f_position;

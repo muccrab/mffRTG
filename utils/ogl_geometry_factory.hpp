@@ -43,6 +43,9 @@ public:
 	std::shared_ptr<AGeometry> getCubeOutline();
 	std::shared_ptr<AGeometry> getCubeNormTex();
 
+	std::shared_ptr<AGeometry> getPlane();
+	std::shared_ptr<AGeometry> getPlaneOutline();
+
 	std::shared_ptr<AGeometry> loadMesh(fs::path aMeshPath, RenderStyle aRenderStyle);
 protected:
 	std::map<std::string, std::shared_ptr<OGLGeometry>> mObjects;

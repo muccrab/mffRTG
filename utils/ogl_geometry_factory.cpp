@@ -52,6 +52,28 @@ std::shared_ptr<AGeometry> OGLGeometryFactory::getCubeNormTex() {
 	return geometry;
 }
 
+std::shared_ptr<AGeometry> OGLGeometryFactory::getPlane() {
+	auto it = mObjects.find("plane");
+	if (it != mObjects.end()) {
+		return it->second;
+	}
+
+	auto geometry = std::make_shared<OGLGeometry>(generatePlaneBuffers());
+	mObjects["plane"] = geometry;
+	return geometry;
+}
+
+std::shared_ptr<AGeometry> OGLGeometryFactory::getPlaneOutline() {
+	auto it = mObjects.find("planeOutline");
+	if (it != mObjects.end()) {
+		return it->second;
+	}
+
+	auto geometry = std::make_shared<OGLGeometry>(generatePlaneOutlineBuffers());
+	mObjects["getPlaneOutline"] = geometry;
+	return geometry;
+}
+
 std::shared_ptr<AGeometry> OGLGeometryFactory::loadMesh(fs::path aMeshPath, RenderStyle aRenderStyle) {
 	aMeshPath = fs::canonical(aMeshPath);
 	auto it = mObjects.find(aMeshPath.string());

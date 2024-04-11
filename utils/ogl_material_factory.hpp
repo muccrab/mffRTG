@@ -20,11 +20,13 @@ using ShaderProgramFiles = std::map<std::string, ShaderFiles>;
 class OGLTexture: public ATexture {
 public:
 	OGLTexture(
-		OpenGLResource &&aTexture)
+		OpenGLResource &&aTexture,
+		GLenum aTextureKind = GL_TEXTURE_2D)
 		: texture(std::move(aTexture))
+		, textureKind(aTextureKind)
 	{}
 	OpenGLResource texture;
-
+	GLenum textureKind;
 };
 
 template<class>
@@ -55,7 +57,7 @@ inline int setUniform(const UniformInfo &aInfo, const MaterialParam &aParam, int
 					GL_CHECK(glActiveTexture(GL_TEXTURE0 + aNextTexturingUnit));
 					const OGLTexture &texture = static_cast<const OGLTexture &>(*arg.textureData);
 
-					GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture.texture.get()));
+					GL_CHECK(glBindTexture(texture.textureKind, texture.texture.get()));
 					GL_CHECK(glUniform1i(aInfo.location, aNextTexturingUnit));
 					++aNextTexturingUnit;
 				}
@@ -118,6 +120,7 @@ class OGLMaterialFactory: public MaterialFactory {
 public:
 	void loadShadersFromDir(fs::path aShaderDir);
 	void loadTexturesFromDir(fs::path aTextureDir);
+	void load3DTexturesFromDir(fs::path aTextureDir);
 
 	std::shared_ptr<AShaderProgram> getShaderProgram(const std::string &aName) {
 		auto it = mPrograms.find(aName);

@@ -92,4 +92,5 @@ add_subdirectory(02_simple3d)
 add_subdirectory(03_textures)
 add_subdirectory(04_deffered)
 add_subdirectory(05_shaders)
+add_subdirectory(06_3d_textures)
 

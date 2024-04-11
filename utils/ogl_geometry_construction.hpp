@@ -49,6 +49,12 @@ IndexedBuffer
 generateCubeBuffersNormTex();
 
 IndexedBuffer
+generatePlaneOutlineBuffers();
+
+IndexedBuffer
+generatePlaneBuffers();
+
+IndexedBuffer
 generateMeshBuffersNormTex(const ObjMesh &aMesh);
 
 IndexedBuffer
