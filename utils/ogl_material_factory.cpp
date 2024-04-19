@@ -15,6 +15,7 @@ inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 	std::cout << "Loading shaders from directory: " << aShaderDir << "\n";
 
 	std::map<std::string, std::regex> patterns = {
+		{ "include", std::regex("(.*)\\.include\\.glsl") },
 		{ "vertex", std::regex("(.*)\\.vertex\\.glsl") },
 		{ "fragment", std::regex("(.*)\\.fragment\\.glsl") },
 		{ "geometry", std::regex("(.*)\\.geometry\\.glsl") },
@@ -90,6 +91,89 @@ std::string loadShaderSource(const fs::path& filePath) {
 	return fileContent;
 }
 
+std::vector<std::string> splitIntoLines(const std::string& aContent) {
+	std::vector<std::string> lines;
+	auto split_view = std::views::split(aContent, '\n');
+
+	for (auto&& part : split_view) {
+		lines.emplace_back(std::string(part.begin(), part.end()));
+	}
+
+	return lines;
+}
+
+std::string extractIncludeName(const std::string &aLine) {
+	std::size_t firstQuote = aLine.find('"');
+	std::size_t lastQuote = aLine.rfind('"');
+	if (firstQuote != std::string::npos
+		&& lastQuote != std::string::npos
+		&& firstQuote != lastQuote)
+	{
+		std::string includeName = aLine.substr(firstQuote + 1, lastQuote - firstQuote - 1);
+		return includeName;
+	}
+	return "";
+}
+
+std::string processIncludesRecursive(
+		int aSourceIndex,
+		int &aNextFileIndex,
+		const std::string &aContent,
+		const ShaderFiles &aIncludeFiles,
+		std::map<std::string, int> &aIncludeIndices)
+{
+	auto lines = splitIntoLines(aContent);
+
+	std::stringstream buffer;
+	int lineNumber = 1;
+	if (aSourceIndex != 0) {
+		buffer << "#line 1 " << aSourceIndex << "\n";
+	}
+	for ( auto & line: lines) {
+		if (line.find("#include") == 0) {
+			std::string includeName = extractIncludeName(line);
+			if (includeName.empty()) {
+				throw OpenGLError("Incorrectly formated shader include directive.");
+			}
+			auto pathIt = aIncludeFiles.find(includeName);
+			if (pathIt == aIncludeFiles.end()) {
+				throw OpenGLError("Unknown shader include: " + includeName);
+			}
+			auto indexIt = aIncludeIndices.find(includeName);
+			int sourceIndex = -1;
+			if (indexIt == aIncludeIndices.end()) {
+				sourceIndex = aNextFileIndex++;
+				aIncludeIndices[includeName] = sourceIndex;
+			} else {
+				sourceIndex = indexIt->second;
+			}
+			auto content = loadShaderSource(pathIt->second);
+			buffer << processIncludesRecursive(sourceIndex, aNextFileIndex, content, aIncludeFiles, aIncludeIndices);  // Recursively process includes
+			buffer << "#line " << ++lineNumber << " " << aSourceIndex << "\n";  // Reset the line number post-include
+		} else {
+			buffer << line << "\n";
+			++lineNumber;
+		}
+	}
+
+	return buffer.str();
+}
+
+std::string processIncludes(
+		const std::string &aContent,
+		const ShaderFiles &aIncludeFiles)
+{
+	int nextFileIndex = 1;
+	std::map<std::string, int> includeIndices;
+	auto newContent = processIncludesRecursive(0, nextFileIndex, aContent, aIncludeFiles, includeIndices);
+
+	for (auto &source: includeIndices) {
+		std::cout << "\t" << source.first << " - " << source.second << "\n";
+	}
+	return newContent;
+}
+
+
 const static std::map<std::string, GLenum> cShaderTypeEnums = {
 	{ "vertex", GL_VERTEX_SHADER },
 	{ "fragment", GL_FRAGMENT_SHADER },
@@ -102,6 +186,7 @@ void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 	aShaderDir = fs::canonical(aShaderDir);
 	ShaderProgramFiles shaderFiles = listShaderFiles(aShaderDir);
 
+	const auto &includeFiles = shaderFiles["include"];
 	using CompiledShaderMap = std::map<std::string, OpenGLResource>;
 	std::map<std::string, CompiledShaderMap> compiledShaders;
 	for (auto & [shaderType, enumValue] : cShaderTypeEnums) {
@@ -110,28 +195,12 @@ void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 		for (auto &shaderFile : files) {
 			std::cout << "Compiling " << shaderType << " shader: " << shaderFile.second << "\n";
 			auto content = loadShaderSource(shaderFile.second);
+			content = processIncludes(content, includeFiles);
 			auto compiledShader = compileShader(enumValue, content);
 			shaders.emplace(shaderFile.first, std::move(compiledShader));
 		}
 		compiledShaders[shaderType] = std::move(shaders);
 	}
-
-	// auto &vertexShaderFiles = shaderFiles["vertex"];
-	// std::map<std::string, OpenGLResource> vertexShadersCompiled;
-	// for (auto &shaderFile : vertexShaderFiles) {
-	// 	std::cout << "Compiling vertex shader: " << shaderFile.second << "\n";
-	// 	auto content = loadShaderSource(shaderFile.second);
-	// 	auto compiledShader = compileShader(GL_VERTEX_SHADER, content);
-	// 	vertexShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
-	// }
-	// auto &fragmentShaderFiles = shaderFiles["fragment"];
-	// std::map<std::string, OpenGLResource> fragmentShadersCompiled;
-	// for (auto &shaderFile : fragmentShaderFiles) {
-	// 	std::cout << "Compiling fragment shader: " << shaderFile.second << "\n";
-	// 	auto content = loadShaderSource(shaderFile.second);
-	// 	auto compiledShader = compileShader(GL_FRAGMENT_SHADER, content);
-	// 	fragmentShadersCompiled.emplace(shaderFile.first, std::move(compiledShader));
-	// }
 
 	auto &programFiles = shaderFiles["program"];
 	for (auto &programFile : programFiles) {
