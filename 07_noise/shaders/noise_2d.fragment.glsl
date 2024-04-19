@@ -1,6 +1,7 @@
 #version 430 core
 #include "perlin"
 #include "simplex"
+#include "worley"
 
 out vec4 out_fragColor;
 
@@ -17,6 +18,9 @@ float noise_2d(vec2 coords) {
 	}
 	if (u_selectedNoise == 1) {
 		return snoise_2d(coords);
+	}
+	if (u_selectedNoise == 2) {
+		return cellular(coords).x;
 	}
 	return 0.0;
 }
