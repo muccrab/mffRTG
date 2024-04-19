@@ -87,7 +87,7 @@ int main() {
 
 		OGLMaterialFactory materialFactory;
 		materialFactory.loadShadersFromDir("./shaders/");
-		materialFactory.loadTexturesFromDir("./textures/");
+		// materialFactory.loadTexturesFromDir("./textures/");
 
 		OGLGeometryFactory geometryFactory;
 
