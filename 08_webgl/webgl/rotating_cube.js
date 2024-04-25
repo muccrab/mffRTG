@@ -57,14 +57,14 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 /*=================== Shaders =========================*/
 
 var vertCode = 'attribute vec3 position;'+
-	'uniform mat4 Pmatrix;'+
-	'uniform mat4 Vmatrix;'+
-	'uniform mat4 Mmatrix;'+
+	'uniform mat4 u_modelMat;'+
+	'uniform mat4 u_viewMat;'+
+	'uniform mat4 u_projMat;'+
 	'attribute vec3 color;'+//the color of the point
 	'varying vec3 vColor;'+
 
 	'void main(void) { '+//pre-built function
-	'gl_Position = Pmatrix*Vmatrix*Mmatrix*vec4(position, 1.);'+
+	'gl_Position = u_projMat*u_viewMat*u_modelMat*vec4(position, 1.);'+
 	'vColor = color;'+
 	'}';
 
@@ -74,37 +74,26 @@ var fragCode = 'precision mediump float;'+
 	'gl_FragColor = vec4(vColor, 1.);'+
 	'}';
 
-var vertShader = gl.createShader(gl.VERTEX_SHADER);
-gl.shaderSource(vertShader, vertCode);
-gl.compileShader(vertShader);
-
-var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-gl.shaderSource(fragShader, fragCode);
-gl.compileShader(fragShader);
-
-var shaderProgram = gl.createProgram();
-gl.attachShader(shaderProgram, vertShader);
-gl.attachShader(shaderProgram, fragShader);
-gl.linkProgram(shaderProgram);
+var shaderProgram = initShaderProgram(gl, vertCode, fragCode)
 
 /* ====== Associating attributes to vertex shader =====*/
-var Pmatrix = gl.getUniformLocation(shaderProgram, "Pmatrix");
-var Vmatrix = gl.getUniformLocation(shaderProgram, "Vmatrix");
-var Mmatrix = gl.getUniformLocation(shaderProgram, "Mmatrix");
+var u_projMat = shaderProgram.uniformLocations.u_projMat.location;
+var u_viewMat = shaderProgram.uniformLocations.u_viewMat.location;
+var u_modelMat = shaderProgram.uniformLocations.u_modelMat.location;
 
 gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-var position = gl.getAttribLocation(shaderProgram, "position");
+var position = gl.getAttribLocation(shaderProgram.program, "position");
 gl.vertexAttribPointer(position, 3, gl.FLOAT, false,0,0) ;
 
 // Position
 gl.enableVertexAttribArray(position);
 gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-var color = gl.getAttribLocation(shaderProgram, "color");
+var color = gl.getAttribLocation(shaderProgram.program, "color");
 gl.vertexAttribPointer(color, 3, gl.FLOAT, false,0,0) ;
 
 // Color
 gl.enableVertexAttribArray(color);
-gl.useProgram(shaderProgram);
+gl.useProgram(shaderProgram.program);
 
 /*==================== MATRIX =====================*/
 
@@ -125,23 +114,6 @@ glMatrix.mat4.lookAt(viewMatrix,
 	[0, 1, 0]);  // Head is up (set to 0,-1,0 to look upside-down)
 
 
-/*==================== Rotation ====================*/
-
-// Function to update model matrix by rotating around the Z-axis
-function rotateZ(m, angle) {
-	glMatrix.mat4.rotateZ(m, m, angle);
-}
-
-// Function to update model matrix by rotating around the Y-axis
-function rotateY(m, angle) {
-	glMatrix.mat4.rotateY(m, m, angle);
-}
-
-// Function to update model matrix by rotating around the X-axis
-function rotateX(m, angle) {
-	glMatrix.mat4.rotateX(m, m, angle);
-}
-
 /*================= Drawing ===========================*/
 var time_old = 0;
 
@@ -155,14 +127,14 @@ var animate = function(time) {
 
 	gl.enable(gl.DEPTH_TEST);
 	gl.depthFunc(gl.LEQUAL);
-	gl.clearColor(0.5, 0.5, 0.5, 0.9);
+	gl.clearColor(0.2, 0.5, 0.6, 0.9);
 	gl.clearDepth(1.0);
 
 	gl.viewport(0.0, 0.0, canvas.width, canvas.height);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.uniformMatrix4fv(Pmatrix, false, projectionMatrix);
-	gl.uniformMatrix4fv(Vmatrix, false, viewMatrix);
-	gl.uniformMatrix4fv(Mmatrix, false, modelMatrix);
+	gl.uniformMatrix4fv(u_projMat, false, projectionMatrix);
+	gl.uniformMatrix4fv(u_viewMat, false, viewMatrix);
+	gl.uniformMatrix4fv(u_modelMat, false, modelMatrix);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
 	gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
