@@ -147,3 +147,14 @@ protected:
 	CompiledPrograms mPrograms;
 	Textures mTextures;
 };
+
+struct ImageData {
+	std::unique_ptr<unsigned char, void(*)(void*)> data;
+	int width, height, channels;
+
+	ImageData(unsigned char* data, int width, int height, int channels);
+};
+
+
+std::unique_ptr<ImageData> loadImage(const fs::path& filePath);
+OpenGLResource createTextureFromData(const ImageData& imgData);

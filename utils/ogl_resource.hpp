@@ -82,6 +82,19 @@ inline OpenGLResource createBuffer() {
 		});
 }
 
+inline OpenGLResource createQuery() {
+	return OpenGLResource(
+		[]{
+			GLuint id = 0;
+			GL_CHECK(glGenQueries(1, &id));
+			return id;
+		},
+		[](GLuint id){
+			glDeleteQueries(1, &id);
+		});
+}
+
+
 inline OpenGLResource createRenderBuffer() {
 	return OpenGLResource(
 		[]{

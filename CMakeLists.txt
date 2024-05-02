@@ -94,4 +94,5 @@ add_subdirectory(04_deffered)
 add_subdirectory(05_shaders)
 add_subdirectory(06_3d_textures)
 add_subdirectory(07_noise)
+add_subdirectory(09_compute)
 

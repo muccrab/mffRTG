@@ -73,25 +73,6 @@ inline std::map<std::string, std::string> parseProgramFile(const fs::path& fileP
 	return parsedData;
 }
 
-std::string loadShaderSource(const fs::path& filePath) {
-	// Check if the file exists before trying to open it
-	if (!fs::exists(filePath)) {
-		throw OpenGLError("File does not exist: " + filePath.string());
-	}
-
-	std::ifstream fileStream(filePath, std::ios::binary); // Open in binary mode to preserve all data
-
-	if (!fileStream.is_open()) {
-		throw std::runtime_error("Failed to open file: " + filePath.string());
-	}
-
-	// Use iterators to read the file content into a string
-	std::string fileContent((std::istreambuf_iterator<char>(fileStream)),
-			std::istreambuf_iterator<char>());
-
-	return fileContent;
-}
-
 std::vector<std::string> splitIntoLines(const std::string& aContent) {
 	std::vector<std::string> lines;
 	auto split_view = std::views::split(aContent, '\n');
@@ -257,14 +238,6 @@ std::vector<fs::path> findImageFiles(const fs::path& aTextureDir) {
 
 	return imageFiles;
 }
-
-struct ImageData {
-	std::unique_ptr<unsigned char, void(*)(void*)> data;
-	int width, height, channels;
-
-	ImageData(unsigned char* data, int width, int height, int channels)
-		: data(data, stbi_image_free), width(width), height(height), channels(channels) {}
-};
 
 std::unique_ptr<ImageData> loadImage(const fs::path& filePath) {
 	int width, height, channels;
@@ -542,3 +515,6 @@ void OGLMaterialFactory::load3DTexturesFromDir(fs::path aTextureDir) {
 		}
 	}
 }
+
+ImageData::ImageData(unsigned char* data, int width, int height, int channels)
+		: data(data, stbi_image_free), width(width), height(height), channels(channels) {}
