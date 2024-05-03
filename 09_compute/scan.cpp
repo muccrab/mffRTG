@@ -30,8 +30,9 @@ void compute() {
 	auto scanLocalShaderSource = loadShaderSource("./shaders/scan_local.compute.glsl");
 	auto scanLocalProgram = createComputeShaderProgram(scanLocalShaderSource);
 
-	auto scanSumShaderSource = loadShaderSource("./shaders/scan_sum.compute.glsl");
-	auto scanSumProgram = createComputeShaderProgram(scanSumShaderSource);
+	// auto scanSumShaderSource = loadShaderSource("./shaders/scan_sum.compute.glsl");
+	// auto scanSumProgram = createComputeShaderProgram(scanSumShaderSource);
+
 	// Create buffer
 	std::vector<int> data(1024, 1);
 
@@ -63,12 +64,10 @@ void compute() {
 	glDispatchCompute((numElements + cWorkGroupSize -1) / cWorkGroupSize, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	// Dispatch the adjustment shader
-	glUseProgram(scanSumProgram.get());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, dataBuffer.get());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, auxBuffer.get());
-	glDispatchCompute(numWorkGroups, 1, 1); // num_groups is the number of groups dispatched in the first pass
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	// *******************************************************
+	// TODO - complete the sum
+	// *******************************************************
+
 	glEndQuery(GL_TIME_ELAPSED);
 	auto end = std::chrono::high_resolution_clock::now();
 
@@ -103,9 +102,6 @@ void compute() {
 		std::cout << i <<", ";
 	}
 	std::cout << "\n";
-	// for (auto i : {1, 1000, 9999}) {
-	// 	std::cout << i << " : " << output[i] << "\n";
-	// }
 }
 
 int main() {
@@ -119,43 +115,6 @@ int main() {
 		auto window = Window();
 
 		compute();
-		// MouseTracking mouseTracking;
-		// Camera camera(window.aspectRatio());
-		// camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
-		// camera.lookAt(glm::vec3());
-		// window.onResize([&camera, &window](int width, int height) {
-		// 		camera.setAspectRatio(window.aspectRatio());
-		// 	});
-                //
-		// window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
-		// 		mouseTracking.update(aWin);
-		// 		if (glfwGetMouseButton(aWin, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-		// 			camera.orbit(-0.4f * mouseTracking.offset(), glm::vec3());
-		// 		}
-		// 		if (glfwGetKey(aWin, GLFW_KEY_ENTER) == GLFW_PRESS) {
-		// 			camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
-		// 			camera.lookAt(glm::vec3());
-		// 		}
-		// 	});
-
-		// OGLMaterialFactory materialFactory;
-		// materialFactory.loadShadersFromDir("./shaders/");
-		// // materialFactory.loadTexturesFromDir("./textures/");
-                //
-		// OGLGeometryFactory geometryFactory;
-                //
-                //
-		// std::array<SimpleScene, 2> scenes {
-		// 	createCubeScene(materialFactory, geometryFactory),
-		// };
-		// int currentSceneIdx = 0;
-                //
-		// Renderer renderer;
-                //
-		// renderer.initialize();
-		// window.runLoop([&] {
-		// 	renderer.renderScene(scenes[currentSceneIdx], camera, RenderOptions{"solid"});
-		// });
 	} catch (ShaderCompilationError &exc) {
 		std::cerr
 			<< "Shader compilation error!\n"
