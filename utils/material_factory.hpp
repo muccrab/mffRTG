@@ -22,6 +22,11 @@ struct TextureInfo {
 	std::shared_ptr<ATexture> textureData;
 };
 
+struct ArrayDescription {
+	int count = 0;
+	const float *ptr = nullptr;
+};
+
 using MaterialParam = std::variant<
 				int,
 				unsigned int,
@@ -31,7 +36,8 @@ using MaterialParam = std::variant<
 				glm::vec4,
 				glm::mat3,
 				glm::mat4,
-				TextureInfo
+				TextureInfo,
+				ArrayDescription
 				>;
 using MaterialParameterValues = std::map<std::string, MaterialParam>;
 

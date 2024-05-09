@@ -42,6 +42,8 @@ public:
 		mName = aName;
 	}
 
+	void move(const glm::vec3& movement) { position += movement; }
+
 	// Getters
 	const glm::vec3& getPosition() const { return position; }
 	const glm::quat& getRotation() const { return rotation; }

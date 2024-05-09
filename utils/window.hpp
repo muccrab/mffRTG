@@ -115,6 +115,12 @@ public:
 		return float(width) / height;
 	}
 
+	void setCursorToCenter() {
+		auto winSize = size();
+
+		glfwSetCursorPos(mWindow, winSize[0] / 2, winSize[1] / 2);
+	}
+
 protected:
 	GLFWwindow* mWindow;
 
@@ -131,12 +137,16 @@ struct MouseTracking {
 		glfwGetCursorPos(window, &currentX, &currentY);
 	}
 
-	void reset() {
-		currentX = 0.0;
-		currentY = 0.0;
+	void reset(float x, float y) {
+		currentX = x;
+		currentY = y;
 
-		previousX = 0.0;
-		previousY = 0.0;
+		previousX = x;
+		previousY = y;
+	}
+
+	void reset() {
+		reset(0.0f, 0.0f);
 	}
 
 	glm::vec2 offset() {

@@ -61,6 +61,8 @@ inline int setUniform(const UniformInfo &aInfo, const MaterialParam &aParam, int
 					GL_CHECK(glUniform1i(aInfo.location, aNextTexturingUnit));
 					++aNextTexturingUnit;
 				}
+			} else if constexpr (std::is_same_v<T, ArrayDescription>) {
+				GL_CHECK(glUniform1fv(aInfo.location, arg.count, arg.ptr));
 			} else {
 				static_assert(always_false_v<T>, "non-exhaustive visitor!");
 			}
@@ -87,6 +89,12 @@ public:
 
 	void use() const { GL_CHECK(glUseProgram(program.get())); }
 	void setMaterialParameters(
+		const MaterialParameterValues &aParameters
+		) const
+	{
+		setMaterialParameters(aParameters, MaterialParameterValues{});
+	}
+	void setMaterialParameters(
 		const MaterialParameterValues &aParameters,
 		const MaterialParameterValues & aFallback) const
 	{
@@ -104,15 +112,6 @@ public:
 		}
 
 	}
-	// void setUniformMatrices(
-	// 		const glm::mat4 &aModel,
-	// 		const glm::mat4 &aView,
-	// 		const glm::mat4 &aProj) const
-	// {
-	// 	GL_CHECK(glUniformMatrix4fv(u_modelMat, 1, GL_FALSE, glm::value_ptr(aModel)));
-	// 	GL_CHECK(glUniformMatrix4fv(u_viewMat, 1, GL_FALSE, glm::value_ptr(aView)));
-	// 	GL_CHECK(glUniformMatrix4fv(u_projMat, 1, GL_FALSE, glm::value_ptr(aProj)));
-	// }
 };
 
 

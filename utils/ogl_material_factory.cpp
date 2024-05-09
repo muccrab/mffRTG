@@ -22,6 +22,7 @@ inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 		{ "geometry", std::regex("(.*)\\.geometry\\.glsl") },
 		{ "control", std::regex("(.*)\\.control\\.glsl") },
 		{ "evaluation", std::regex("(.*)\\.evaluation\\.glsl") },
+		{ "compute", std::regex("(.*)\\.compute\\.glsl") },
 		{ "program", std::regex("(.*)\\.program") },
 	};
 	ShaderProgramFiles shaderFiles;
@@ -162,6 +163,7 @@ const static std::map<std::string, GLenum> cShaderTypeEnums = {
 	{ "geometry", GL_GEOMETRY_SHADER },
 	{ "control", GL_TESS_CONTROL_SHADER },
 	{ "evaluation", GL_TESS_EVALUATION_SHADER },
+	{ "compute", GL_COMPUTE_SHADER },
 };
 
 void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
@@ -215,6 +217,25 @@ void OGLMaterialFactory::loadShadersFromDir(fs::path aShaderDir) {
 					std::move(uniforms)
 					));
 	}
+	auto &computeShaders = compiledShaders["compute"];
+	for (auto &shader : computeShaders) {
+		std::cout << "Creating shader program: " << shader.first << "\n";
+		auto program = createShaderProgram(CompiledShaderStages{ &(shader.second) });
+		auto uniforms = listShaderUniforms(program);
+		for (auto info : uniforms) {
+			std::cout
+				<< "Uniform name: " << info.name
+				<< " Type: " << getGLTypeName(info.type)
+				<< " Location: " << info.location << "\n";
+		}
+		mPrograms.emplace(
+				shader.first,
+				std::make_shared<OGLShaderProgram>(
+					std::move(program),
+					std::move(uniforms)
+					));
+	}
+
 }
 
 std::vector<fs::path> findImageFiles(const fs::path& aTextureDir) {

@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <ogl_material_factory.hpp>
+#include "texture.hpp"
 
 struct CADescription {
 	GLenum format;
@@ -58,14 +59,7 @@ public:
 			GLenum aFormat = GL_RGBA,
 			GLenum aType = GL_FLOAT)
 	{
-		auto textureID = createTexture();
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, textureID.get()));
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, aWidth, aHeight, 0, aFormat, aType, NULL));
-
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+		auto textureID = createColorTexture(aWidth, aHeight, aInternalFormat, aFormat, aType);
 
 		// Attach the texture to the FBO
 		GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + aAttachmentIndex, GL_TEXTURE_2D, textureID.get(), 0));

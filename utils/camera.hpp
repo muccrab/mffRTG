@@ -31,6 +31,16 @@ public:
 		rotation = glm::quatLookAt(direction, up);
 	}
 
+	void yaw(float angle) {
+		glm::quat rotationQuat = glm::angleAxis(angle, getUpVector());
+		rotation = rotationQuat * rotation;
+	}
+
+	void pitch(float angle) {
+		glm::quat rotationQuat = glm::angleAxis(angle, getRightVector());
+		rotation = rotationQuat * rotation;
+	}
+
 	void orbit(const glm::vec2 &aAngles, const glm::vec3 aOrigin) {
 		{
 			glm::vec3 axis = getUpVector();

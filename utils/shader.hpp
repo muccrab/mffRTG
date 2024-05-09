@@ -51,8 +51,11 @@ inline std::string getGLTypeName(GLenum type) {
 	case GL_SAMPLER_3D: return "sampler3D";
 	case GL_SAMPLER_CUBE: return "samplerCube";
 	case GL_SAMPLER_2D_SHADOW: return "sampler2DShadow";
+	case GL_IMAGE_1D: return "image1D";
+	case GL_IMAGE_2D: return "image2D";
+	case GL_IMAGE_3D: return "image3D";
 	// Add more types as needed
-	default: return "Unknown Type";
+	default: return "Unknown Type " + std::to_string(type);
 	}
 }
 
