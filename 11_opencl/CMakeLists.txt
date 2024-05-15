@@ -24,4 +24,5 @@ target_include_directories(11_opencl PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/..
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/clFFT-Full-2.12.2-Linux-x64/include
+	/usr/local/cuda-12.1/targets/x86_64-linux/include
 )
