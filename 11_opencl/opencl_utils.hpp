@@ -2,6 +2,7 @@
 #pragma once
 
 #include <CL/opencl.hpp>
+#include <clFFT.h>
 #include <vector>
 #include <iostream>
 #include <cmath>
@@ -48,6 +49,53 @@ void save_image(const std::string& filename, const Image& img) {
     stbi_write_png(filename.c_str(), img.width, img.height, img.channels, output.data(), img.width * img.channels);
 }
 
+// Helper OpenCL kernel for computing the logarithm of the amplitude
+const char* logAmplitudeKernelSource =
+R"(
+kernel void computeLogAmplitude(global float2* complexData, global float* amplitudeData, int numElements) {
+    int id = get_global_id(0);
+    if (id < numElements) {
+        float real = complexData[id].x;
+        float imag = complexData[id].y;
+        float magnitude = sqrt(real * real + imag * imag);
+        amplitudeData[id] = log(1 + magnitude); // Logarithmic scale to enhance visibility
+    }
+}
+)";
+
+void saveFFTAmplitudeImage(const cl::Context& context, cl::CommandQueue& queue, const cl::Buffer& imageFFTBuffer, int width, int height, const std::string& filename) {
+    cl::Program::Sources source;
+    source.push_back({logAmplitudeKernelSource, strlen(logAmplitudeKernelSource)});
+    cl::Program program(context, source);
+    program.build("-cl-std=CL2.0");
+
+    // Buffer for amplitude data
+    cl::Buffer amplitudeBuffer(context, CL_MEM_WRITE_ONLY, width * height * sizeof(float));
+
+    // Set up and run the kernel
+    cl::Kernel kernel(program, "computeLogAmplitude");
+    kernel.setArg(0, imageFFTBuffer);
+    kernel.setArg(1, amplitudeBuffer);
+    kernel.setArg(2, width * height);
+
+    cl::NDRange globalSize(width * height);
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, globalSize, cl::NullRange);
+
+    // Read back the data
+    std::vector<float> amplitudeData(width * height);
+    queue.enqueueReadBuffer(amplitudeBuffer, CL_TRUE, 0, width * height * sizeof(float), amplitudeData.data());
+
+    // Convert float amplitude data to grayscale image data
+    float maxAmplitude = *std::max_element(amplitudeData.begin(), amplitudeData.end());
+    std::vector<unsigned char> imageData(width * height);
+    for (int i = 0; i < width * height; ++i) {
+        imageData[i] = static_cast<unsigned char>(255 * amplitudeData[i] / maxAmplitude);
+    }
+
+    // Use stb_image_write to save the image
+    stbi_write_png(filename.c_str(), width, height, 1, imageData.data(), width);
+}
+
 cl::Context createContext() {
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
@@ -65,8 +113,66 @@ cl::CommandQueue createQueue(const cl::Context& context, const cl::Device& devic
 }
 
 
+// Execute FFT or IFFT
+// cl::Buffer executeFFT(const cl::Context& context, cl::CommandQueue& queue, cl::Buffer& inputBuffer, int width, int height, bool forward) {
+//     clfftSetupData fftSetup;
+//     clfftInitSetupData(&fftSetup);
+//     clfftSetup(&fftSetup);
+//
+//     clfftPlanHandle plan;
+//     size_t clLengths[2] = { static_cast<size_t>(width), static_cast<size_t>(height) };
+//     clfftCreateDefaultPlan(&plan, context(), CLFFT_2D, clLengths);
+//
+//     clfftSetPlanPrecision(plan, CLFFT_SINGLE);
+//     clfftSetLayout(plan, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
+//     clfftSetResultLocation(plan, CLFFT_INPLACE);
+//     clfftBakePlan(plan, 1, &queue(), nullptr, nullptr);
+//
+//     // Execute the FFT or IFFT
+//     cl::Event fftEvent;
+//     clfftDirection dir = forward ? CLFFT_FORWARD : CLFFT_BACKWARD;
+//     clfftEnqueueTransform(plan, dir, 1, &queue(), 0, nullptr, &fftEvent(), &inputBuffer(), nullptr, nullptr);
+//     fftEvent.wait();
+//
+//     clfftDestroyPlan(&plan);
+//     clfftTeardown();
+//
+//     return inputBuffer;  // Returning the same buffer since CLFFT_INPLACE was used
+// }
+
+cl::Buffer executeFFT(const cl::Context& context, cl::CommandQueue& queue, cl::Buffer& inputBuffer, int width, int height, bool forward) {
+    clfftSetupData fftSetup;
+    clfftInitSetupData(&fftSetup);
+    clfftSetup(&fftSetup);
+
+    clfftPlanHandle plan;
+    size_t clLengths[2] = { static_cast<size_t>(width), static_cast<size_t>(height) };
+    clfftCreateDefaultPlan(&plan, context(), CLFFT_2D, clLengths);
+
+    clfftSetPlanPrecision(plan, CLFFT_SINGLE);
+    clfftSetLayout(plan, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
+    clfftSetResultLocation(plan, CLFFT_OUTOFPLACE);
+    clfftBakePlan(plan, 1, &queue(), nullptr, nullptr);
+
+    // Create an output buffer for the FFT result
+    cl::Buffer outputBuffer(context, CL_MEM_READ_WRITE, width * height * 2*sizeof(float));
+
+    // Execute the FFT or IFFT
+    cl::Event fftEvent;
+    clfftDirection dir = forward ? CLFFT_FORWARD : CLFFT_BACKWARD;
+    clfftEnqueueTransform(plan, dir, 1, &queue(), 0, nullptr, &fftEvent(), &inputBuffer(), &outputBuffer(), nullptr);
+    fftEvent.wait();
+
+    clfftDestroyPlan(&plan);
+    clfftTeardown();
+
+    return outputBuffer;  // Returning the new output buffer
+}
+
+
+//
 // Prepare and return the Fourier transform of a convolution kernel
-cl::Buffer prepareKernelFFT(const cl::Context& context, const cl::CommandQueue& queue, const std::vector<float>& kernel, int kernel_width, int kernel_height, int width, int height) {
+cl::Buffer prepareKernelFFT(const cl::Context& context, cl::CommandQueue& queue, const std::vector<float>& kernel, int kernel_width, int kernel_height, int width, int height) {
     // Pad kernel to match image size
     std::vector<float> padded_kernel(width * height, 0.0f);
     int start_x = (width - kernel_width) / 2;
@@ -85,35 +191,40 @@ cl::Buffer prepareKernelFFT(const cl::Context& context, const cl::CommandQueue& 
 }
 
 
-// Execute FFT or IFFT
-cl::Buffer executeFFT(const cl::Context& context, const cl::CommandQueue& queue, const cl::Buffer& inputBuffer, int width, int height, bool forward) {
-    clfftSetupData fftSetup;
-    clfftInitSetupData(&fftSetup);
-    clfftSetup(&fftSetup);
+// Helper function to perform element-wise complex multiplication
+const char* complexMultiplyKernel =
+R"(
+kernel void complexMultiply(global float2* a, global float2* b, global float2* result, int numElements) {
+    int id = get_global_id(0);
+    if (id < numElements) {
+        float2 af = a[id];
+        float2 bf = b[id];
+        result[id] = (float2)(af.x * bf.x - af.y * bf.y, af.x * bf.y + af.y * bf.x);
+    }
+}
+)";
 
-    clfftPlanHandle plan;
-    size_t clLengths[2] = { static_cast<size_t>(width), static_cast<size_t>(height) };
-    clfftCreateDefaultPlan(&plan, context(), CLFFT_2D, clLengths);
+cl::Buffer multiplyFrequencyDomain(const cl::Context& context, cl::CommandQueue& queue, const cl::Buffer& fftImage, const cl::Buffer& fftKernel, int numElements) {
+    cl::Program::Sources source;
+    source.push_back({complexMultiplyKernel, strlen(complexMultiplyKernel)});
+    cl::Program program(context, source);
+    program.build("-cl-std=CL2.0");
 
-    clfftSetPlanPrecision(plan, CLFFT_SINGLE);
-    clfftSetLayout(plan, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
-    clfftSetResultLocation(plan, CLFFT_INPLACE);
-    clfftBakePlan(plan, 1, &queue(), nullptr, nullptr);
+    cl::Kernel kernel(program, "complexMultiply");
+    kernel.setArg(0, fftImage);
+    kernel.setArg(1, fftKernel);
+    kernel.setArg(2, fftImage); // In-place multiplication
+    kernel.setArg(3, numElements);
 
-    // Execute the FFT or IFFT
-    cl::Event fftEvent;
-    clfftDirection dir = forward ? CLFFT_FORWARD : CLFFT_BACKWARD;
-    clfftEnqueueTransform(plan, dir, 1, &queue(), 0, nullptr, &fftEvent(), &inputBuffer(), nullptr, nullptr);
-    fftEvent.wait();
+    cl::NDRange globalSize(numElements);
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, globalSize, cl::NullRange);
 
-    clfftDestroyPlan(&plan);
-    clfftTeardown();
-
-    return inputBuffer;  // Returning the same buffer since CLFFT_INPLACE was used
+    return fftImage;  // Since the operation is in-place, return the modified image buffer
 }
 
+
 // Full FFT convolution process
-std::unique_ptr<Image> performFFTConvolution(const cl::Context& context, const cl::CommandQueue& queue, const Image& img, const cl::Buffer& kernelFFT, int width, int height) {
+std::unique_ptr<Image> performFFTConvolution(const cl::Context& context, cl::CommandQueue& queue, const Image& img, const cl::Buffer& kernelFFT, int width, int height) {
     // Pad image to appropriate size
     std::vector<float> padded_image(width * height, 0.0f);
     std::copy_n(img.data.begin(), img.width * img.height, padded_image.begin() + width * (height - img.height) / 2 + (width - img.width) / 2);
@@ -121,11 +232,14 @@ std::unique_ptr<Image> performFFTConvolution(const cl::Context& context, const c
     cl::Buffer imageBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, width * height * sizeof(float), padded_image.data());
     cl::Buffer imageFFTBuffer = executeFFT(context, queue, imageBuffer, width, height, true);
 
+	// saveFFTAmplitudeImage(context, queue, imageFFTBuffer, width, height, "amplitude.png");
+
     // Convolution (multiplication in frequency domain)
-    cl::Buffer convolvedBuffer = multiplyFrequencyDomain(context, queue, imageFFTBuffer, kernelFFT, width * height);  // Assuming this function is defined
+    // cl::Buffer convolvedBuffer = multiplyFrequencyDomain(context, queue, imageFFTBuffer, kernelFFT, width * height);  // Assuming this function is defined
 
     // Inverse FFT
-    cl::Buffer resultBuffer = executeFFT(context, queue, convolvedBuffer, width, height, false);
+    // cl::Buffer resultBuffer = executeFFT(context, queue, convolvedBuffer, width, height, false);
+    cl::Buffer resultBuffer = executeFFT(context, queue, imageFFTBuffer, width, height, false);
 
     // Read back the result
     std::vector<float> result(width * height);
@@ -147,33 +261,4 @@ std::unique_ptr<Image> performFFTConvolution(const cl::Context& context, const c
     return output;
 }
 
-// Helper function to perform element-wise complex multiplication
-const char* complexMultiplyKernel =
-R"(
-kernel void complexMultiply(global float2* a, global float2* b, global float2* result, int numElements) {
-    int id = get_global_id(0);
-    if (id < numElements) {
-        float2 af = a[id];
-        float2 bf = b[id];
-        result[id] = (float2)(af.x * bf.x - af.y * bf.y, af.x * bf.y + af.y * bf.x);
-    }
-}
-)";
 
-cl::Buffer multiplyFrequencyDomain(const cl::Context& context, const cl::CommandQueue& queue, const cl::Buffer& fftImage, const cl::Buffer& fftKernel, int numElements) {
-    cl::Program::Sources source;
-    source.push_back({complexMultiplyKernel, strlen(complexMultiplyKernel)});
-    cl::Program program(context, source);
-    program.build("-cl-std=CL2.0");
-
-    cl::Kernel kernel(program, "complexMultiply");
-    kernel.setArg(0, fftImage);
-    kernel.setArg(1, fftKernel);
-    kernel.setArg(2, fftImage); // In-place multiplication
-    kernel.setArg(3, numElements);
-
-    cl::NDRange globalSize(numElements);
-    queue.enqueueNDRangeKernel(kernel, cl::NullRange, globalSize, cl::NullRange);
-
-    return fftImage;  // Since the operation is in-place, return the modified image buffer
-}
