@@ -44,8 +44,8 @@ int main() {
 		MouseTracking mouseTracking;
 		Config config;
 		Camera camera(window.aspectRatio());
-		camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
-		camera.lookAt(glm::vec3());
+		camera.setPosition(glm::vec3(0.0f,0.0f, -6.0f));
+		camera.lookAt(glm::vec3(0.0f, 1.0f, 0.0f));
 		window.onResize([&camera, &window](int width, int height) {
 				camera.setAspectRatio(window.aspectRatio());
 			});
@@ -53,14 +53,14 @@ int main() {
 		window.onCheckInput([&camera, &mouseTracking](GLFWwindow *aWin) {
 				mouseTracking.update(aWin);
 				if (glfwGetMouseButton(aWin, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-					camera.orbit(-0.4f * mouseTracking.offset(), glm::vec3());
+					camera.orbit(-0.4f * mouseTracking.offset(), glm::vec3(0.0f, 1.0f, 0.0f));
 				}
 			});
 		window.setKeyCallback([&config, &camera](GLFWwindow *aWin, int key, int scancode, int action, int mods) {
 				if (action == GLFW_PRESS) {
 					switch (key) {
 					case GLFW_KEY_ENTER:
-						camera.setPosition(glm::vec3(0.0f,0.0f, -3.0f));
+						camera.setPosition(glm::vec3(0.0f,0.0f, -6.0f));
 						camera.lookAt(glm::vec3());
 						break;
 					case GLFW_KEY_1:
@@ -87,15 +87,13 @@ int main() {
 
 		OGLMaterialFactory materialFactory;
 		materialFactory.loadShadersFromDir("./shaders/");
-		materialFactory.loadTexturesFromDir("./textures/");
+		// materialFactory.loadTexturesFromDir("./textures/");
 
 		OGLGeometryFactory geometryFactory;
 
 
-		std::array<SimpleScene, 3> scenes {
-			createCubeScene(materialFactory, geometryFactory),
-			createInstancedCubesScene(materialFactory, geometryFactory),
-			createMonkeyScene(materialFactory, geometryFactory),
+		std::array<SimpleScene, 1> scenes {
+			createLSystemScene(materialFactory, geometryFactory),
 		};
 
 		Renderer renderer(materialFactory);

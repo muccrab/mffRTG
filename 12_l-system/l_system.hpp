@@ -1,83 +1,100 @@
 #pragma once
 
-// Represents a line segment in 3D space with thickness at each end
-struct LineSegment {
-    glm::vec3 start;
-    glm::vec3 end;
-    float startThickness;
-    float endThickness;
-};
+#include <vector>
+#include "vertex.hpp"
+#include "mesh_object.hpp"
+#include "ogl_geometry_construction.hpp"
+#include "ogl_geometry_factory.hpp"
 
-// Generates the L-system geometry (list of lines) from the generated string
-std::vector<LineSegment> generateLSystemGeometry(const std::string& lSystemString, float angle, float stepLength, float initialThickness, float shrinkageFactor) {
-    std::vector<LineSegment> lines;
-    std::stack<std::pair<glm::mat4, float>> transformStack; // Pair of transformation matrix and thickness
-    glm::mat4 currentTransform = glm::mat4(1.0f); // Identity matrix
-    glm::vec3 currentPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 direction = glm::vec3(0.0f, stepLength, 0.0f);
-    float currentThickness = initialThickness;
+#include "rule_set.hpp"
+#include "l_system_generator.hpp"
 
-    for (const char& command : lSystemString) {
-        if (command == 'F') {
-            glm::vec4 newEnd = currentTransform * glm::vec4(direction, 1.0f);
-            glm::vec3 endPosition = glm::vec3(newEnd) + currentPosition;
-            float endThickness = currentThickness * shrinkageFactor;
-            lines.push_back({currentPosition, endPosition, currentThickness, endThickness});
-            currentPosition = endPosition;
-            currentThickness = endThickness;
-        } else if (command == '+') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Turn right around Z-axis
-        } else if (command == '-') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(-angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Turn left around Z-axis
-        } else if (command == '&') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)); // Pitch down around X-axis
-        } else if (command == '^') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(-angle), glm::vec3(1.0f, 0.0f, 0.0f)); // Pitch up around X-axis
-        } else if (command == '/') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f)); // Roll right around Y-axis
-        } else if (command == '\\') {
-            currentTransform = glm::rotate(currentTransform, glm::radians(-angle), glm::vec3(0.0f, 1.0f, 0.0f)); // Roll left around Y-axis
-        } else if (command == '[') {
-            transformStack.push({currentTransform, currentThickness});
-        } else if (command == ']') {
-            currentPosition = glm::vec3(transformStack.top().first * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-            currentTransform = transformStack.top().first;
-            currentThickness = transformStack.top().second;
-            transformStack.pop();
-        }
-    }
+inline IndexedBuffer
+createVAOFromLines(const std::vector<LineSegment>& lineSegments) {
+	IndexedBuffer buffers {
+		createVertexArray(),
+	};
+	buffers.vbos.push_back(createBuffer());
+	buffers.vbos.push_back(createBuffer());
 
-    return lines;
+	// Create buffers/arrays
+	glBindVertexArray(buffers.vao.get());
+
+	// Prepare vertex data and indices
+	std::vector<GLuint> indices(lineSegments.size() * 2);
+	for (size_t i = 0; i < lineSegments.size(); ++i) {
+		indices[2 * i] = 2 * i;
+		indices[2 * i + 1] = 2 * i + 1;
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, buffers.vbos[0].get());
+	glBufferData(GL_ARRAY_BUFFER, lineSegments.size() * sizeof(LineSegment), lineSegments.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.vbos[1].get());
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+	// Vertex positions and thickness for start
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(LineSegment)/2, (void*)offsetof(LineSegment, start));
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(LineSegment)/2, (void*)offsetof(LineSegment, startThickness));
+	glEnableVertexAttribArray(1);
+
+	// // Vertex positions and thickness for end
+	// glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(LineSegment), (void*)offsetof(LineSegment, end));
+	// glEnableVertexAttribArray(2);
+	// glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(LineSegment), (void*)offsetof(LineSegment, endThickness));
+	// glEnableVertexAttribArray(3);
+
+	glBindVertexArray(0);
+
+	buffers.indexCount = indices.size();
+	buffers.mode = GL_LINES;
+	return buffers;
 }
 
 
-class InstancedCube: public MeshObject {
-public:
-	InstancedCube(std::vector<VertexColor> aInstanceAttributes)
-		: mInstanceAttributes(std::move(aInstanceAttributes))
 
+class LSystem: public MeshObject {
+public:
+	LSystem()
+	{
+		// mLines = {
+		// 	LineSegment{ glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), 0.8 },
+		// 	LineSegment{ glm::vec3(0.0f, 1.0f, 0.0f), 0.8f, glm::vec3(0.0f, 1.8f, 0.0f), 0.6 },
+		// };
+		// auto str = std::string("F[+F][-F]");
+		// // auto str = std::string("F+F+F+F--FF");
+		// mLines = generateLSystemGeometry(str, 60.0f, 0.5f, 0.2f, 0.8f);
+	}
+
+	LSystem(const RuleSet &aRuleSet)
+		: mRuleSet(aRuleSet)
 	{}
 
+	void loadRuleSet(fs::path aRuleFile) {
+		mRuleSet = RuleSet::loadFromFile(aRuleFile);
+	}
+
+	void runGenerations(int aGenerationCount) {
+		currentLSystemString = generateLSystemString(mRuleSet, aGenerationCount);
+		std::cout << "Current L-System string: " << currentLSystemString << "\n";
+		mLines = generateLSystemGeometry(currentLSystemString, 60.0f, 0.5f, 0.2f, 0.8f);
+	}
+
 	virtual std::shared_ptr<AGeometry> getGeometry(GeometryFactory &aGeometryFactory, RenderStyle aRenderStyle) {
-		return std::make_shared<OGLGeometry>(generateInstancedCubeBuffers(mInstanceAttributes));
-		// switch (aRenderStyle) {
-		// case RenderStyle::Solid:
-		// 	return aGeometryFactory.getCubeNormTex();
-		// case RenderStyle::Wireframe:
-		// 	return aGeometryFactory.getCubeOutline();
-		// }
-		// return std::shared_ptr<AGeometry>();
+		return std::make_shared<OGLGeometry>(createVAOFromLines(mLines));
 	}
 
 	void prepareRenderData(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) override {
 		for (auto &mode : mRenderInfos) {
 			mode.second.shaderProgram = aMaterialFactory.getShaderProgram(mode.second.materialParams.mMaterialName);
-			getTextures(mode.second.materialParams.mParameterValues, aMaterialFactory);
 			mode.second.geometry = getGeometry(aGeometryFactory, mode.second.materialParams.mRenderStyle);
 		}
 	}
 protected:
-	std::vector<VertexColor> mInstanceAttributes;
+	RuleSet mRuleSet;
+	std::string currentLSystemString;
+	std::vector<LineSegment> mLines;
 };
 
 

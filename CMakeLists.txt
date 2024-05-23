@@ -96,5 +96,6 @@ add_subdirectory(06_3d_textures)
 add_subdirectory(07_noise)
 add_subdirectory(09_compute)
 add_subdirectory(10_deffered_2)
-add_subdirectory(11_opencl)
+# add_subdirectory(11_opencl)
+add_subdirectory(12_l-system)
 

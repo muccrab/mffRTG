@@ -9,6 +9,23 @@
 #include <chrono>
 #include <algorithm>
 
+// Utility function to trim whitespace from both ends of a string
+inline std::string trim(const std::string& str) {
+	auto is_not_space = [](char ch) { return !std::isspace(ch); };
+
+	// Find the first and last non-whitespace characters
+	auto start = std::ranges::find_if(str, is_not_space);
+	auto end = std::ranges::find_if(str.rbegin(), str.rend(), is_not_space).base();
+
+	// If the string is entirely whitespace, return an empty string
+	if (start >= end) {
+		return "";
+	}
+
+	return std::string(start, end);
+}
+
+
 // Represents a single production rule with a weight and a computed probability
 struct Rule {
 	char predecessor;
@@ -22,13 +39,27 @@ class RuleSet {
 public:
 	// Adds a rule to the set
 	void addRule(const Rule& rule) {
+		std::cout << "Adding rule " << rule.predecessor << "(" << rule.weight << ") -> " << rule.successor << "\n";
 		rules[rule.predecessor].push_back(rule);
 		normalizeProbabilities(rule.predecessor);
 	}
 
+	void setAxiom(const std::string &aAxiom) {
+		std::cout << "Setting axiom " << aAxiom << "\n";
+		mAxiom = aAxiom;
+	}
+
+	std::string axiom() const {
+		return mAxiom;
+	}
+
 	// Selects a rule nondeterministically based on provided probability
 	std::string applyRule(char predecessor, double randomValue) const {
-		const auto& possibleRules = rules.at(predecessor);
+		auto it = rules.find(predecessor);
+		if (it == rules.end()) {
+			return "";
+		}
+		const auto& possibleRules = it->second;
 		double cumulativeProbability = 0.0;
 
 		for (const auto& rule : possibleRules) {
@@ -41,12 +72,24 @@ public:
 	}
 
 	// Loads the rule set from a text file
-	static RuleSet loadFromFile(const std::string& filename) {
+	static RuleSet loadFromFile(fs::path aRuleFile) {
+		std::cout << "Loading L-system rule set " << aRuleFile << "\n";
+		if (!fs::exists(aRuleFile)) {
+			throw std::runtime_error("File " + aRuleFile.string() + " does not exist!");
+		}
 		RuleSet ruleSet;
-		std::ifstream file(filename);
+		std::ifstream file(aRuleFile);
 		std::string line;
 
+		if (std::getline(file, line)) {
+			line = trim(line);
+			ruleSet.setAxiom(line);
+		}
 		while (std::getline(file, line)) {
+			line = trim(line);
+			if (line.empty() || line[0] == '#') {
+				continue;
+			}
 			Rule rule = parseRule(line);
 			ruleSet.addRule(rule);
 		}
@@ -55,6 +98,7 @@ public:
 
 private:
 	std::unordered_map<char, std::vector<Rule>> rules;
+	std::string mAxiom;
 
 	static Rule parseRule(const std::string& line) {
 		Rule rule;
@@ -82,8 +126,8 @@ private:
 };
 
 // Generates a string using the L-system rules over a number of iterations
-std::string generateLSystemString(const RuleSet& ruleSet, const std::string& axiom, int iterations) {
-	std::string current = axiom;
+std::string generateLSystemString(const RuleSet& ruleSet, int iterations) {
+	std::string current = ruleSet.axiom();
 	std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
 	std::uniform_real_distribution<double> dist(0.0, 1.0);
 

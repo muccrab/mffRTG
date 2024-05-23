@@ -2,82 +2,107 @@
 layout(lines) in;
 layout(triangle_strip, max_vertices = 18) out;
 
-in vec3 fragPos[];
-in float fragThickness[];
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+in float out_level[];
+
+uniform mat4 u_modelMat;
+uniform mat4 u_viewMat;
+uniform mat4 u_projMat;
+
+uniform float u_initialThickness = 0.1;
+uniform float u_shrinkageFactor = 0.8;
+
+vec3 generateOrthonormalBasis(vec3 u, out vec3 v, out vec3 w) {
+	// Step 2: Find a vector that is not collinear with u
+	if (abs(u.x) > abs(u.z)) {
+		v = vec3(-u.y, u.x, 0.0);
+	} else {
+		v = vec3(0.0, -u.z, u.y);
+	}
+
+	// Step 3: Compute w by taking the cross product of u and v
+	w = cross(u, v);
+
+	// Step 4: Normalize v and w
+	v = normalize(v);
+	w = normalize(w);
+
+	// Return the original vector u for convenience
+	return u;
+}
+
 
 void main()
 {
-	vec3 direction = normalize(fragPos[1] - fragPos[0]);
+	mat4 pvm = u_projMat * u_viewMat * u_modelMat;
+	vec3 start = gl_in[0].gl_Position.xyz;
+	vec3 end = gl_in[1].gl_Position.xyz;
+
+	float startRadius = u_initialThickness * pow(u_shrinkageFactor, out_level[0]);
+	float endRadius =  u_initialThickness * pow(u_shrinkageFactor, out_level[1]);
+	vec3 direction = normalize(end - start);
 	vec3 up = vec3(0.0, 1.0, 0.0);
-	if (abs(direction.y) > 0.99)
+	if (abs(direction.y) > 0.99) {
 		up = vec3(1.0, 0.0, 0.0);
+	}
 	vec3 right = normalize(cross(direction, up));
 	vec3 forward = normalize(cross(right, direction));
 
-	vec3 startLeft = fragPos[0] - right * fragThickness[0] * 0.5;
-	vec3 startRight = fragPos[0] + right * fragThickness[0] * 0.5;
-	vec3 endLeft = fragPos[1] - right * fragThickness[1] * 0.5;
-	vec3 endRight = fragPos[1] + right * fragThickness[1] * 0.5;
+	vec4 startLeft = pvm * vec4(start - right * startRadius, 1.0);
+	vec4 startRight = pvm * vec4(start + right * startRadius, 1.0);
+	vec4 endLeft = pvm * vec4(end - right * endRadius, 1.0);
+	vec4 endRight = pvm * vec4(end + right * endRadius, 1.0);
 
-	vec3 startUp = fragPos[0] + forward * fragThickness[0] * 0.5;
-	vec3 startDown = fragPos[0] - forward * fragThickness[0] * 0.5;
-	vec3 endUp = fragPos[1] + forward * fragThickness[1] * 0.5;
-	vec3 endDown = fragPos[1] - forward * fragThickness[1] * 0.5;
+	vec4 startUp = pvm * vec4(start + forward * startRadius, 1.0);
+	vec4 startDown = pvm * vec4(start - forward * startRadius, 1.0);
+	vec4 endUp = pvm * vec4(end + forward * endRadius, 1.0);
+	vec4 endDown = pvm * vec4(end - forward * endRadius, 1.0);
 
 	// Emit vertices for the 4-sided tube
-	// Start
-	gl_Position = projection * view * model * vec4(startLeft, 1.0);
+	gl_Position = startLeft;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(startRight, 1.0);
+	gl_Position = startDown;
 	EmitVertex();
 
-	// End
-	gl_Position = projection * view * model * vec4(endLeft, 1.0);
+	gl_Position = endLeft;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(endRight, 1.0);
+	gl_Position = endDown;
 	EmitVertex();
 
 	EndPrimitive();
 
-	// Top
-	gl_Position = projection * view * model * vec4(startUp, 1.0);
+	gl_Position = startDown;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(startDown, 1.0);
-	EmitVertex();
-
-	gl_Position = projection * view * model * vec4(endUp, 1.0);
-	EmitVertex();
-	gl_Position = projection * view * model * vec4(endDown, 1.0);
+	gl_Position = startRight;
 	EmitVertex();
 
-	EndPrimitive();
-
-	// Side 1
-	gl_Position = projection * view * model * vec4(startLeft, 1.0);
+	gl_Position = endDown;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(startUp, 1.0);
-	EmitVertex();
-
-	gl_Position = projection * view * model * vec4(endLeft, 1.0);
-	EmitVertex();
-	gl_Position = projection * view * model * vec4(endUp, 1.0);
+	gl_Position = endRight;
 	EmitVertex();
 
 	EndPrimitive();
 
-	// Side 2
-	gl_Position = projection * view * model * vec4(startRight, 1.0);
+	gl_Position = startUp;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(startDown, 1.0);
+	gl_Position = startLeft;
 	EmitVertex();
 
-	gl_Position = projection * view * model * vec4(endRight, 1.0);
+	gl_Position = endUp;
 	EmitVertex();
-	gl_Position = projection * view * model * vec4(endDown, 1.0);
+	gl_Position = endLeft;
+	EmitVertex();
+
+	EndPrimitive();
+
+	gl_Position = startRight;
+	EmitVertex();
+	gl_Position = startUp;
+	EmitVertex();
+
+	gl_Position = endRight;
+	EmitVertex();
+	gl_Position = endUp;
 	EmitVertex();
 
 	EndPrimitive();
