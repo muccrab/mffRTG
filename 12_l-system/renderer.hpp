@@ -13,8 +13,6 @@ public:
 	Renderer(OGLMaterialFactory &aMaterialFactory)
 		: mMaterialFactory(aMaterialFactory)
 	{
-		mShowNormalsShader = std::static_pointer_cast<OGLShaderProgram>(
-				mMaterialFactory.getShaderProgram("generate_normals"));
 	}
 
 
@@ -68,40 +66,6 @@ public:
 		}
 	}
 
-	template<typename TScene, typename TCamera>
-	void renderSceneNormals(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
-		auto projection = aCamera.getProjectionMatrix();
-		auto view = aCamera.getViewMatrix();
-
-		std::vector<RenderData> renderData;
-		for (const auto &object : aScene.getObjects()) {
-			auto data = object.getRenderData(aRenderOptions);
-			if (data) {
-				renderData.push_back(data.value());
-			}
-		}
-
-		MaterialParameterValues fallbackParameters;
-		fallbackParameters["u_projMat"] = projection;
-		fallbackParameters["u_viewMat"] = view;
-		fallbackParameters["u_solidColor"] = glm::vec4(0,0,0,1);
-		fallbackParameters["u_viewPos"] = aCamera.getPosition();
-		for (const auto &data: renderData) {
-			const glm::mat4 &modelMat = data.modelMat;
-			const OGLGeometry &geometry = static_cast<const OGLGeometry&>(data.mGeometry);
-
-			fallbackParameters["u_modelMat"] = modelMat;
-			fallbackParameters["u_normalMat"] = glm::mat3(modelMat);
-
-			mShowNormalsShader->use();
-			mShowNormalsShader->setMaterialParameters(fallbackParameters, {});
-
-			geometry.bind();
-			geometry.draw(GL_POINTS);
-		}
-	}
 protected:
-	std::shared_ptr<OGLShaderProgram> mShowNormalsShader;
-
 	OGLMaterialFactory &mMaterialFactory;
 };

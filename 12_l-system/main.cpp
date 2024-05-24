@@ -29,7 +29,6 @@ struct Config {
 	int currentSceneIdx = 0;
 	bool showSolid = true;
 	bool showWireframe = false;
-	bool showNormals = false;
 };
 
 int main() {
@@ -75,9 +74,6 @@ int main() {
 					case GLFW_KEY_W:
 						toggle("Show wireframe", config.showWireframe);
 						break;
-					case GLFW_KEY_N:
-						toggle("Show normals", config.showNormals);
-						break;
 					case GLFW_KEY_S:
 						toggle("Show solid", config.showSolid);
 						break;
@@ -113,11 +109,6 @@ int main() {
 				GL_CHECK(glEnable(GL_POLYGON_OFFSET_LINE));
 				GL_CHECK(glPolygonOffset(-1.0f, -1.0f));
 				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"wireframe"});
-			}
-			if (config.showNormals) {
-				GL_CHECK(glEnable(GL_POLYGON_OFFSET_LINE));
-				GL_CHECK(glPolygonOffset(-1.0f, -1.0f));
-				renderer.renderSceneNormals(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
 			}
 		});
 	} catch (ShaderCompilationError &exc) {
