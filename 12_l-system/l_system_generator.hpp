@@ -21,7 +21,6 @@ inline std::vector<LineSegment> generateLSystemGeometry(
 		const std::string& lSystemString,
 		float angle,
 		float stepLength,
-		float initialThickness,
 		float shorteningFactor) {
 	std::vector<LineSegment> lines;
 	std::stack<State> transformStack;
@@ -67,6 +66,24 @@ inline std::vector<LineSegment> generateLSystemGeometry(
 		case '\\':
 			currentState.transformation = glm::rotate(currentState.transformation, glm::radians(-angle), glm::vec3(currentState.transformation[0][2], currentState.transformation[1][2], currentState.transformation[2][2])); // Roll left around local Y-axis
 			break;
+		// case '+':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Turn right around Z-axis
+		// 	break;
+		// case '-':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(-angle), glm::vec3(0.0f, 0.0f, 1.0f)); // Turn left around Z-axis
+		// 	break;
+		// case '>':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)); // Pitch down around X-axis
+		// 	break;
+		// case '<':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(-angle), glm::vec3(1.0f, 0.0f, 0.0f)); // Pitch up around X-axis
+		// 	break;
+		// case '/':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Roll right around Y-axis
+		// 	break;
+		// case '\\':
+		// 	currentState.transformation = glm::rotate(currentState.transformation, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Roll left around Y-axis
+		// 	break;
 		case '[':
 			transformStack.push(currentState);
 			break;

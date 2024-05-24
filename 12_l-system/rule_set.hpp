@@ -126,9 +126,9 @@ private:
 };
 
 // Generates a string using the L-system rules over a number of iterations
-std::string generateLSystemString(const RuleSet& ruleSet, int iterations) {
+std::string generateLSystemString(const RuleSet& ruleSet, int iterations, int seed) {
 	std::string current = ruleSet.axiom();
-	std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
+	std::default_random_engine rng(seed);
 	std::uniform_real_distribution<double> dist(0.0, 1.0);
 
 	for (int i = 0; i < iterations; ++i) {

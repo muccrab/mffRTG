@@ -52,11 +52,20 @@ createVAOFromLines(const std::vector<LineSegment>& lineSegments) {
 	return buffers;
 }
 
+inline float getValueOrDefault(const std::map<std::string, float>& myMap, const std::string& key, float defaultValue) {
+	auto it = myMap.find(key);
+	if (it != myMap.end()) {
+		return it->second;
+	}
+	return defaultValue;
+}
+
 
 
 class LSystem: public MeshObject {
 public:
-	LSystem()
+	LSystem():
+		mSeed(std::chrono::system_clock::now().time_since_epoch().count())
 	{
 		// mLines = {
 		// 	LineSegment{ glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), 0.8 },
@@ -68,17 +77,25 @@ public:
 	}
 
 	LSystem(const RuleSet &aRuleSet)
-		: mRuleSet(aRuleSet)
+		: mRuleSet(aRuleSet),
+		mSeed(std::chrono::system_clock::now().time_since_epoch().count())
 	{}
 
 	void loadRuleSet(fs::path aRuleFile) {
 		mRuleSet = RuleSet::loadFromFile(aRuleFile);
 	}
 
+	void setConfig(const std::map<std::string, float> &aConfig) {
+		mConfig = aConfig;
+	}
+
 	void runGenerations(int aGenerationCount) {
-		currentLSystemString = generateLSystemString(mRuleSet, aGenerationCount);
+		currentLSystemString = generateLSystemString(mRuleSet, aGenerationCount, mSeed);
 		std::cout << "Current L-System string: " << currentLSystemString << "\n";
-		mLines = generateLSystemGeometry(currentLSystemString, 60.0f, 0.5f, 0.2f, 0.8f);
+		mLines = generateLSystemGeometry(currentLSystemString,
+				getValueOrDefault(mConfig, "angle", 60.0f),
+				getValueOrDefault(mConfig, "step", 0.5f),
+				getValueOrDefault(mConfig, "shortening", 0.8f));
 	}
 
 	virtual std::shared_ptr<AGeometry> getGeometry(GeometryFactory &aGeometryFactory, RenderStyle aRenderStyle) {
@@ -93,8 +110,10 @@ public:
 	}
 protected:
 	RuleSet mRuleSet;
+	int mSeed;
 	std::string currentLSystemString;
 	std::vector<LineSegment> mLines;
+	std::map<std::string, float> mConfig;
 };
 
 

@@ -69,9 +69,9 @@ int main() {
 					case GLFW_KEY_2:
 						config.currentSceneIdx = 1;
 						break;
-					case GLFW_KEY_3:
-						config.currentSceneIdx = 2;
-						break;
+					// case GLFW_KEY_3:
+					// 	config.currentSceneIdx = 2;
+					// 	break;
 					case GLFW_KEY_W:
 						toggle("Show wireframe", config.showWireframe);
 						break;
@@ -92,8 +92,9 @@ int main() {
 		OGLGeometryFactory geometryFactory;
 
 
-		std::array<SimpleScene, 1> scenes {
-			createLSystemScene(materialFactory, geometryFactory),
+		std::array<SimpleScene, 2> scenes {
+			createLSystemScene1(materialFactory, geometryFactory),
+			createLSystemScene2(materialFactory, geometryFactory),
 		};
 
 		Renderer renderer(materialFactory);
