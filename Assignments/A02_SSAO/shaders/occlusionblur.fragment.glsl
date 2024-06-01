@@ -11,10 +11,11 @@ out vec4 out_fragColor;
 
 void main() {
 	vec2 pixelSize = 1 / vec2(textureSize(u_occlusion, 0));
-	float result;
+	float result = 0;
+	vec3 diffuseColor = texture(u_diffuse, texCoords).rgb;
 	
 	if (u_blurStrength == 0) {
-	out_fragColor = vec4(texture(u_diffuse, texCoords).xyz ,1);
+	out_fragColor = vec4(diffuseColor ,1);
 	return;
 	}
 	
@@ -32,5 +33,5 @@ void main() {
 	result /= (u_blurStrength * u_blurStrength);
 	
 	//out_fragColor = vec4(vec3(result),1);
-	out_fragColor = vec4(texture(u_diffuse, texCoords).xyz * result,1);
+	out_fragColor = vec4(diffuseColor * result,1);
 }
