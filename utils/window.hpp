@@ -32,6 +32,7 @@ public:
 		}
 
 		glfwSetKeyCallback(mWindow, keyCallback);
+		glfwSetScrollCallback(mWindow, scrollCallback);
 		// glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GLFW_TRUE);
 		glfwSwapInterval(1);
 	}
@@ -79,9 +80,25 @@ public:
 		}
 	}
 
+	static void scrollCallback(GLFWwindow* window, double offsetX, double offsetY) {
+		void* ptr = glfwGetWindowUserPointer(window);
+		if (ptr) {
+			Window* winPtr = reinterpret_cast<Window*>(ptr);
+			if (winPtr->mScrollCallback) {
+				winPtr->mScrollCallback(window, offsetX, offsetY);
+			}
+		}
+	}
+
+
 	void setKeyCallback(std::function<void(GLFWwindow*, int, int, int, int)> aKeyCallback) {
 		mKeyCallback = aKeyCallback;
 	}
+
+	void setScrollCallBack(std::function<void(GLFWwindow*, double, double)> aScrollCallback) {
+		mScrollCallback = aScrollCallback;
+	}
+
 
 	double elapsedTime() const {
 		return glfwGetTime();
@@ -126,6 +143,7 @@ protected:
 
 	std::function<void(int, int)> mOnResizeCallback;
 	std::function<void(GLFWwindow*, int, int, int, int)> mKeyCallback;
+	std::function<void(GLFWwindow*, double, double)> mScrollCallback;
 
 	std::function<void(GLFWwindow*)> mCheckInput;
 };

@@ -64,6 +64,15 @@ public:
 		}
 	}
 
+	void distanceFrom(float deltaDistance, const glm::vec3 aOrigin) {
+		glm::vec3 deltaPosition = (position - aOrigin);
+		float length = deltaPosition.length();
+		if (length == 0) return;
+		deltaPosition /= length;
+		position += deltaPosition * deltaDistance;
+	}
+
+
 private:
 	float fov;          // Field of view in radians
 	float aspectRatio;  // Aspect ratio of the viewport

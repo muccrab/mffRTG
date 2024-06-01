@@ -9,6 +9,23 @@
 #include "stb/stb_image.h"
 
 
+struct RGBA_byte {
+	char R, G, B, A;
+	bool operator<(RGBA_byte const& rhs) const {
+		return std::max({ R,G,B,A }) < std::max({ rhs.R,rhs.G,rhs.B,rhs.A });
+	}
+	bool operator>(RGBA_byte const& rhs) const {
+		return std::max({ R,G,B,A }) > std::max({ rhs.R,rhs.G,rhs.B,rhs.A });
+	}
+};
+
+std::ostream& operator<<(std::ostream& os, const RGBA_byte& col)
+{
+	os << col.A << "-" << col.G << '-' << col.B << '-' << col.A;
+	return os;
+}
+
+
 inline ShaderProgramFiles listShaderFiles(const fs::path& aShaderDir) {
 	if (!fs::exists(aShaderDir) || !fs::is_directory(aShaderDir)) {
 		throw std::runtime_error("Shader dir path is not a directory or does not exist.");
@@ -338,7 +355,8 @@ std::vector<fs::path> findVolumeDataFiles(const fs::path& aTextureDir) {
 
 using DataBuffer = std::variant<
 			std::vector<uint16_t>,
-			std::vector<float>
+			std::vector<float>,
+			std::vector<RGBA_byte>
 			>;
 struct VolumeData {
 	DataBuffer data;
@@ -448,7 +466,11 @@ std::unique_ptr<VolumeData> loadMHDFile(const fs::path& aFilePath) {
 				buffer = std::vector<float>();
 			} else if (elementType == "MET_USHORT") {
 				buffer = std::vector<uint16_t>();
-			} else {
+			}
+			else if (elementType == "MET_RGBA") {
+				buffer = std::vector<RGBA_byte>();
+			}
+			else {
 				throw OpenGLError("Unsupported element type for MHD loader");
 			}
 		}
@@ -505,6 +527,11 @@ struct TextureDataUploadVisitor {
 	void operator()(const std::vector<float>& vec) const {
 		GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, volumeData.width, volumeData.height, volumeData.depth, 0, GL_RED, GL_FLOAT, vec.data()));
 	}
+
+	void operator()(const std::vector<RGBA_byte>& vec) const {
+		GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, volumeData.width, volumeData.height, volumeData.depth, 0, GL_RGBA, GL_BYTE, vec.data()));
+	}
+
 	const VolumeData& volumeData;
 };
 

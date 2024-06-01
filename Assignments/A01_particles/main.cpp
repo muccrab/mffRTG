@@ -106,16 +106,12 @@ int main() {
 
 		OGLMaterialFactory materialFactory;
 		materialFactory.loadShadersFromDir("./shaders/");
-		materialFactory.loadTexturesFromDir("./textures/");
 		materialFactory.load3DTexturesFromDir("./3d_textures/");
 
 		OGLGeometryFactory geometryFactory;
 
 
 		std::array<SimpleScene, 4> scenes {
-			//createCubeScene(materialFactory, geometryFactory),
-			//createInstancedCubesScene(materialFactory, geometryFactory),
-			//createMonkeyScene(materialFactory, geometryFactory),
 			createParticleScene(materialFactory, geometryFactory),
 			createParticle2Scene(materialFactory, geometryFactory)
 		};
