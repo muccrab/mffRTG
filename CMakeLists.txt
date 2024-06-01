@@ -98,4 +98,5 @@ add_subdirectory(09_compute)
 add_subdirectory(10_deffered_2)
 # add_subdirectory(11_opencl)
 add_subdirectory(12_l-system)
-
+add_subdirectory(Assignments/A01_particles)
+add_subdirectory(Assignments/A02_SSAO)
