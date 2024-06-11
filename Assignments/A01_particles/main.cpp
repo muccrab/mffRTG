@@ -53,6 +53,9 @@ int main() {
 		Camera camera(window.aspectRatio());
 		camera.setPosition(glm::vec3(0.0f,0.0f, -10.0f));
 		camera.lookAt(glm::vec3());
+		SpotLight light;
+		light.setPosition(glm::vec3(25.0f, 40.0f, 30.0f));
+		light.lookAt(glm::vec3());
 		window.onResize([&camera, &window](int width, int height) {
 				camera.setAspectRatio(window.aspectRatio());
 			});
@@ -126,7 +129,7 @@ int main() {
 				GL_CHECK(glDisable(GL_POLYGON_OFFSET_LINE));
 				GL_CHECK(glPolygonOffset(0.0f, 0.0f));
 				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-				renderer.renderParticleScene(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
+				renderer.renderParticleScene(scenes[config.currentSceneIdx], camera, light, RenderOptions{"solid"});
 			}
 			if (config.showWireframe) {
 				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));

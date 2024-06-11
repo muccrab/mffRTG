@@ -38,6 +38,19 @@ inline SimpleScene createParticleScene(MaterialFactory &aMaterialFactory, Geomet
 			{
 				{"u_instanceCount", 100},
 				{ "u_particleTexture", TextureInfo("blob.mhd") },
+				{"u_emmiterDimensions", glm::vec3(0.1, 0.1f, 0.1)},
+				{"u_particleLifeSize", glm::vec2(0.05, 0.5)},
+				{"u_particleSpeed", 0.1f },
+				{"u_particleDirection", glm::vec3(0,1,0) },
+				{"u_particleSpread", 45.f},
+				{"u_particleLifeVelocity", glm::vec2(1, 2)},
+				{"u_rotationSpeed", 0.f},
+				{"u_initRotation", 45.f},
+				{"u_startColor", glm::vec4(0.3, 0.3, 0.3, 1)},
+				{"u_endColor", glm::vec4(1, 1, 1, 1)},
+				{"u_windLifeSpeed", glm::vec2(0.5,1) },
+				{"u_gravityLifeForce", glm::vec2(0,0.1f)},
+				{ "u_normalSpread", 3.f }
 			}
 			)
 		);
@@ -78,7 +91,8 @@ inline SimpleScene createParticle2Scene(MaterialFactory& aMaterialFactory, Geome
 				{"u_startColor", glm::vec4(0.7, 0.3, 0.3, 1)},
 				{"u_endColor", glm::vec4(0.7, 0.5, 0.3, 1)},
 				{"u_windLifeSpeed", glm::vec2(0,0.1) },
-				{"u_gravityLifeForce", glm::vec2(0,0)}
+				{"u_gravityLifeForce", glm::vec2(0,0)},
+				{ "u_normalSpread", 0.f }
 			}
 			)
 	);

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "camera.hpp"
+#include "spotlight.hpp"
 #include "ogl_material_factory.hpp"
 #include "ogl_geometry_factory.hpp"
 #include "Time.hpp"
@@ -75,8 +76,8 @@ public:
 		}
 	}
 
-	template<typename TScene, typename TCamera>
-	void renderParticleScene(const TScene& aScene, const TCamera& aCamera, RenderOptions aRenderOptions) {
+	template<typename TScene, typename TCamera, typename TLight>
+	void renderParticleScene(const TScene& aScene, const TCamera& aCamera, const TLight& aLight, RenderOptions aRenderOptions) {
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
@@ -94,6 +95,7 @@ public:
 		fallbackParameters["u_solidColor"] = glm::vec4(0, 0, 0, 1);
 		fallbackParameters["u_viewPos"] = aCamera.getPosition();
 		fallbackParameters["u_time"] = Time::GetInstance().Now();
+		fallbackParameters["u_lightPos"] = aLight.getPosition();
 		
 
 		GL_CHECK(glPatchParameteri(GL_PATCH_VERTICES, 3));
